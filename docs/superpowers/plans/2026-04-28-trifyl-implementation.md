@@ -901,11 +901,9 @@ describe('isValidSwap', () => {
 
 describe('findValidMoves', () => {
   it('returns empty when no swap creates any match', () => {
-    const board = g([
-      [A, B, A],
-      [B, A, B],
-      [A, B, A],
-    ]);
+    // 1×3 with 2 distinct types: only adjacent swaps are (0,0)↔(0,1) and (0,1)↔(0,2);
+    // neither produces a 3-in-a-row in a 3-cell row, so no moves exist.
+    const board = g([[A, B, A]]);
     expect(findValidMoves(board)).toEqual([]);
   });
 
