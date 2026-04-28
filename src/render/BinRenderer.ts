@@ -1,4 +1,4 @@
-import { Container, Sprite } from 'pixi.js';
+import { Container, Sprite, type Texture } from 'pixi.js';
 import { gsap } from 'gsap';
 import type { AssetProvider } from '@/assets/AssetProvider';
 import type { BinKind } from '@/game/waste';
@@ -9,7 +9,7 @@ type RealBin = Exclude<BinKind, 'hazardous'>;
 export class BinRenderer {
   readonly container: Container;
   private sprite: Sprite;
-  private frames: import('pixi.js').Texture[];
+  private frames: Texture[];
   private idleTween: gsap.core.Tween | null = null;
 
   constructor(
@@ -46,7 +46,13 @@ export class BinRenderer {
   }
 
   playOpenClose(): gsap.core.Timeline {
-    const tl = gsap.timeline();
+    this.idleTween?.pause();
+    const tl = gsap.timeline({
+      onComplete: () => {
+        this.sprite.y = this.worldY;
+        this.idleTween?.resume();
+      },
+    });
     const half = ANIM.binOpen.duration / 2;
     const stepDuration = half / this.frames.length;
     this.frames.forEach((tex, i) => {
@@ -56,5 +62,11 @@ export class BinRenderer {
       tl.call(() => { this.sprite.texture = this.frames[i]!; }, [], half + (this.frames.length - 1 - i) * stepDuration);
     }
     return tl;
+  }
+
+  destroy(): void {
+    this.idleTween?.kill();
+    this.idleTween = null;
+    this.container.destroy({ children: true });
   }
 }
