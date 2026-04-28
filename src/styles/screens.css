@@ -1,0 +1,94 @@
+.screen {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+  opacity: 0;
+  pointer-events: none;
+}
+.screen--active { opacity: 1; pointer-events: auto; }
+
+.welcome {
+  align-items: center;
+  justify-content: center;
+  gap: 64px;
+  background: linear-gradient(135deg, #F0FAF0 0%, #E0F5E8 100%);
+}
+.welcome__title {
+  font-size: 96px;
+  font-weight: 800;
+  color: var(--color-menu-to);
+  text-align: center;
+}
+.welcome__levels {
+  display: flex;
+  gap: 32px;
+}
+.welcome__btn {
+  width: 380px;
+  height: 220px;
+  border-radius: var(--radius-lg);
+  font-size: 36px;
+  font-weight: 700;
+  color: white;
+  background: var(--color-menu-from);
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.15s;
+}
+.welcome__btn:hover { transform: translateY(-4px); }
+.welcome__btn--2 { background: var(--color-accent); }
+.welcome__btn--3 { background: var(--color-warning); }
+.welcome__btn small { font-size: 22px; opacity: 0.9; font-weight: 500; }
+
+.endmedia {
+  background: black;
+  align-items: stretch;
+  justify-content: stretch;
+}
+.endmedia__media {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 48px;
+  background: radial-gradient(circle, #1a3a2a 0%, #000 100%);
+}
+.endmedia__buttons {
+  position: absolute;
+  bottom: 64px;
+  right: 64px;
+  display: flex;
+  gap: 24px;
+}
+.endmedia__btn {
+  padding: 24px 48px;
+  font-size: 28px;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  background: var(--color-menu-from);
+  color: white;
+}
+.endmedia__btn--home { background: rgba(255,255,255,0.2); }
+
+.screensaver {
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 50%, #1A8F4F 0%, #0a3a20 100%);
+}
+.screensaver__hint {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: white;
+  font-size: 28px;
+  opacity: 0.7;
+}
