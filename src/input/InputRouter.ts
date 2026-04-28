@@ -15,9 +15,10 @@ export class InputRouter {
   private enabled = true;
 
   constructor(private readonly grid: GridRenderer) {
-    grid.hitArea.on('pointerdown', this.handlePointerDown);
-    grid.hitArea.on('pointerup', this.handlePointerUp);
-    grid.hitArea.on('pointerupoutside', this.handlePointerUp);
+    grid.container.eventMode = 'static';
+    grid.container.on('pointerdown', this.handlePointerDown);
+    grid.container.on('pointerup', this.handlePointerUp);
+    grid.container.on('pointerupoutside', this.handlePointerUp);
   }
 
   setEnabled(v: boolean): void { this.enabled = v; }
