@@ -4,7 +4,12 @@ import type { Pos } from '@/game/grid';
 
 export interface SwapIntent { a: Pos; b: Pos; }
 
-const DRAG_THRESHOLD_RATIO = 0.3;
+// Drag fires the swap as soon as the pointer crosses the center of the target tile
+// (i.e., delta ≥ 1 tile width on the dominant axis). Below TAP_DEADZONE_RATIO the
+// gesture is treated as a tap (used by tap-tap selection); between deadzone and
+// fire threshold the gesture is dropped (an incomplete drag, no swap).
+const FIRE_RATIO = 1.0;
+const TAP_DEADZONE_RATIO = 0.3;
 
 export class InputRouter {
   private downCell: Pos | null = null;
@@ -17,6 +22,7 @@ export class InputRouter {
   constructor(private readonly grid: GridRenderer) {
     grid.container.eventMode = 'static';
     grid.container.on('pointerdown', this.handlePointerDown);
+    grid.container.on('globalpointermove', this.handlePointerMove);
     grid.container.on('pointerup', this.handlePointerUp);
     grid.container.on('pointerupoutside', this.handlePointerUp);
   }
@@ -36,6 +42,19 @@ export class InputRouter {
     for (const cb of this.listeners) cb(intent);
   }
 
+  private inBounds(p: Pos): boolean {
+    const px = this.grid.cellToPixel(p.row, p.col);
+    return this.grid.pixelToCell(px.x, px.y) !== null;
+  }
+
+  private fireSwap(target: Pos): void {
+    if (!this.downCell) return;
+    const a = this.downCell;
+    this.downCell = null;
+    this.selected = null;
+    if (this.inBounds(target)) this.emit({ a, b: target });
+  }
+
   private handlePointerDown = (e: FederatedPointerEvent): void => {
     if (!this.enabled) return;
     const cell = this.grid.pixelToCell(e.global.x, e.global.y);
@@ -45,40 +64,57 @@ export class InputRouter {
     this.downY = e.global.y;
   };
 
+  private handlePointerMove = (e: FederatedPointerEvent): void => {
+    if (!this.enabled || !this.downCell) return;
+    const dx = e.global.x - this.downX;
+    const dy = e.global.y - this.downY;
+    const tileSize = this.grid.layout.tileSize;
+    const fireThreshold = tileSize * FIRE_RATIO;
+
+    if (Math.abs(dx) >= Math.abs(dy)) {
+      if (dx >= fireThreshold) {
+        this.fireSwap({ row: this.downCell.row, col: this.downCell.col + 1 });
+      } else if (dx <= -fireThreshold) {
+        this.fireSwap({ row: this.downCell.row, col: this.downCell.col - 1 });
+      }
+    } else {
+      if (dy >= fireThreshold) {
+        this.fireSwap({ row: this.downCell.row + 1, col: this.downCell.col });
+      } else if (dy <= -fireThreshold) {
+        this.fireSwap({ row: this.downCell.row - 1, col: this.downCell.col });
+      }
+    }
+  };
+
   private handlePointerUp = (e: FederatedPointerEvent): void => {
     if (!this.enabled || !this.downCell) return;
     const dx = e.global.x - this.downX;
     const dy = e.global.y - this.downY;
     const tileSize = this.grid.layout.tileSize;
-    const threshold = tileSize * DRAG_THRESHOLD_RATIO;
-    const isDrag = Math.abs(dx) > threshold || Math.abs(dy) > threshold;
+    const deadzone = tileSize * TAP_DEADZONE_RATIO;
+    const movedFar = Math.abs(dx) > deadzone || Math.abs(dy) > deadzone;
 
-    if (isDrag) {
-      const dir = Math.abs(dx) > Math.abs(dy)
-        ? { row: 0, col: dx > 0 ? 1 : -1 }
-        : { row: dy > 0 ? 1 : -1, col: 0 };
-      const target = { row: this.downCell.row + dir.row, col: this.downCell.col + dir.col };
-      this.selected = null;
-      if (this.grid.pixelToCell(this.grid.cellToPixel(target.row, target.col).x, this.grid.cellToPixel(target.row, target.col).y)) {
-        this.emit({ a: this.downCell, b: target });
-      }
-    } else {
-      const cell = this.grid.pixelToCell(e.global.x, e.global.y);
-      if (!cell) { this.downCell = null; return; }
-      if (this.selected) {
-        if (cell.row === this.selected.row && cell.col === this.selected.col) {
-          this.selected = null;
-        } else if (Math.abs(cell.row - this.selected.row) + Math.abs(cell.col - this.selected.col) === 1) {
-          const a = this.selected;
-          this.selected = null;
-          this.emit({ a, b: cell });
-        } else {
-          this.selected = cell;
-        }
+    if (movedFar) {
+      // an incomplete drag (moved past deadzone but never reached fire threshold)
+      this.downCell = null;
+      return;
+    }
+
+    // pure tap: feed into tap-tap selection
+    const cell = this.grid.pixelToCell(e.global.x, e.global.y) ?? this.downCell;
+    this.downCell = null;
+    if (this.selected) {
+      if (cell.row === this.selected.row && cell.col === this.selected.col) {
+        this.selected = null;
+      } else if (Math.abs(cell.row - this.selected.row) + Math.abs(cell.col - this.selected.col) === 1) {
+        const a = this.selected;
+        this.selected = null;
+        this.emit({ a, b: cell });
       } else {
         this.selected = cell;
       }
+    } else {
+      this.selected = cell;
     }
-    this.downCell = null;
   };
 }
