@@ -1178,8 +1178,12 @@ describe('applyGravity', () => {
     expect(board[2]).toEqual([A, B, C]);
     expect(board[1]).toEqual([null, B, C]);
     expect(board[0]).toEqual([null, null, null]);
-    expect(moves.find((m) => m.from.row === 0 && m.from.col === 0)).toBeUndefined();
     expect(moves.length).toBeGreaterThan(0);
+    // gravity invariants: every recorded move drops a cell down within the same column
+    for (const m of moves) {
+      expect(m.from.col).toBe(m.to.col);
+      expect(m.from.row).toBeLessThan(m.to.row);
+    }
   });
 });
 
