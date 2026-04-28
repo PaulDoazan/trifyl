@@ -10,8 +10,8 @@ const BIN_FRAME_COUNT = 8;
 
 export class PlaceholderAssetProvider implements AssetProvider {
   private tiles = new Map<WasteType, Texture>();
-  private binIdle = new Map<BinKind, Texture>();
-  private binFrames = new Map<BinKind, Texture[]>();
+  private binIdle = new Map<Exclude<BinKind, 'hazardous'>, Texture>();
+  private binFrames = new Map<Exclude<BinKind, 'hazardous'>, Texture[]>();
 
   constructor(private readonly renderer: Renderer) {}
 

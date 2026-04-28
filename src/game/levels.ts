@@ -3,8 +3,8 @@ import type { WasteType } from './waste';
 export interface LevelConfig {
   level: 1 | 2 | 3;
   size: 5 | 10 | 15;
-  wasteTypes: WasteType[];
-  trapTypes: WasteType[];
+  wasteTypes: readonly WasteType[];
+  trapTypes: readonly WasteType[];
 }
 
 export const LEVEL_1: LevelConfig = {

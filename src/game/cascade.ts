@@ -1,4 +1,4 @@
-import type { Cell, Grid, Pos } from './grid';
+import type { Grid, Pos } from './grid';
 import { getCell, setCell } from './grid';
 import { findMatches, type MatchGroup } from './matching';
 import type { LevelConfig } from './levels';
@@ -71,7 +71,7 @@ export function applyCascade(grid: Grid, level: LevelConfig, prng: Prng): Cascad
     const matches = findMatches(grid);
     if (matches.length === 0) break;
     for (const m of matches) {
-      for (const cell of m.cells) setCell(grid, cell.row, cell.col, null as Cell);
+      for (const cell of m.cells) setCell(grid, cell.row, cell.col, null);
     }
     const drops = applyGravity(grid);
     const refill = refillTop(grid, level, prng);
