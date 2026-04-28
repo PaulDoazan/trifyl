@@ -16,7 +16,6 @@ export class App {
   private idle!: IdleTracker;
   private screensaverScene!: ScreensaverScene;
   private currentGame: GameScreen | null = null;
-  private lastFinalScore = 0;
 
   constructor(private readonly host: HTMLElement) {}
 
@@ -67,13 +66,11 @@ export class App {
     this.disposeCurrentGame();
     const game = new GameScreen(this.pixi, this.assets, level, {
       onHome: () => this.goHome(),
-      onSeeResult: (score) => {
-        this.lastFinalScore = score;
+      onSeeResult: () => {
         this.disposeCurrentGame();
         this.screens.show('endmedia');
       },
     });
-    this.host.appendChild(game.root);
     this.screens.register('game', game.root);
     this.screens.show('game');
     this.currentGame = game;

@@ -13,7 +13,6 @@ import { InputRouter } from '@/input/InputRouter';
 import { applySwap, createGameState, type GameState } from '@/game/GameState';
 import { getLevelConfig } from '@/game/levels';
 import { createPrng } from '@/game/prng';
-import { findValidMoves } from '@/game/matching';
 import { WASTE_META } from '@/game/waste-data';
 import type { BinKind } from '@/game/waste';
 import { ANIM } from '@/app/animation-config';
@@ -71,9 +70,10 @@ export class GameScreen {
     this.end = new EndOverlay(() => callbacks.onSeeResult(this.state.score));
 
     const el = document.createElement('section');
-    el.className = 'screen';
+    el.className = 'screen screen--game';
     el.style.opacity = '1';
-    el.style.pointerEvents = 'auto';
+    el.style.background = 'transparent';
+    el.style.pointerEvents = 'none';
     el.appendChild(this.hud.root);
 
     const playArea = document.createElement('div');
@@ -115,6 +115,7 @@ export class GameScreen {
     await this.grid.swapVisual(a, b).then();
     this.grid.applySwapInModel(a, b);
 
+    let runningScore = this.state.score;
     for (const event of result.events) {
       const tl = gsap.timeline();
       const trapTexts: string[] = [];
@@ -135,7 +136,8 @@ export class GameScreen {
       await this.grid.applyDrops(event.step.drops).then();
       await this.grid.applyRefill(event.step.refill).then();
 
-      this.hud.setScore(this.state.score + this.cumulativeDelta(result, event));
+      runningScore += event.scoreForStep;
+      this.hud.setScore(runningScore);
       if (trapTexts.length > 0) this.edu.show(trapTexts[0]!);
     }
 
@@ -148,15 +150,6 @@ export class GameScreen {
       this.gameOverShown = true;
       this.end.show(this.state.score);
     }
-  }
-
-  private cumulativeDelta(result: Extract<ReturnType<typeof applySwap>, { kind: 'resolved' }>, current: typeof result.events[number]): number {
-    let sum = 0;
-    for (const e of result.events) {
-      sum += e.scoreForStep;
-      if (e === current) break;
-    }
-    return sum;
   }
 
   destroy(): void {

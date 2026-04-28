@@ -17,8 +17,8 @@ export interface HUDCallbacks {
 export class HUD {
   readonly root: HTMLElement;
   private scoreEl: HTMLElement;
-  private levelEl: HTMLElement;
-  private displayedScore = 0;
+  private scoreObj = { v: 0 };
+  private scoreTween: gsap.core.Tween | null = null;
 
   constructor(level: 1 | 2 | 3, callbacks: HUDCallbacks) {
     const m = document.createElement('aside');
@@ -30,7 +30,7 @@ export class HUD {
         <span class="menu__score-label">Score</span>
         <span class="menu__score" data-score>0</span>
       </div>
-      <div class="menu__level" data-level>Niveau ${String(level).padStart(2, '0')}</div>
+      <div class="menu__level">Niveau ${String(level).padStart(2, '0')}</div>
       <div class="menu__bins">
         <div class="menu__bin-label">${BIN_LABELS.yellow}</div>
         <div class="menu__bin-label">${BIN_LABELS.black}</div>
@@ -43,24 +43,25 @@ export class HUD {
     `;
     this.root = m;
     this.scoreEl = m.querySelector('[data-score]') as HTMLElement;
-    this.levelEl = m.querySelector('[data-level]') as HTMLElement;
 
     (m.querySelector('[data-home]') as HTMLButtonElement).onclick = callbacks.onHome;
     (m.querySelector('[data-quit]') as HTMLButtonElement).onclick = callbacks.onQuit;
   }
 
   setScore(value: number): void {
-    const obj = { v: this.displayedScore };
-    gsap.to(obj, {
+    this.scoreTween?.kill();
+    this.scoreTween = gsap.to(this.scoreObj, {
       v: value,
       duration: ANIM.scoreCountUp.duration,
       ease: ANIM.scoreCountUp.ease,
-      onUpdate: () => { this.scoreEl.textContent = String(Math.round(obj.v)); },
-      onComplete: () => { this.displayedScore = value; this.scoreEl.textContent = String(value); },
+      onUpdate: () => { this.scoreEl.textContent = String(Math.round(this.scoreObj.v)); },
+      onComplete: () => { this.scoreEl.textContent = String(value); },
     });
   }
 
   destroy(): void {
+    this.scoreTween?.kill();
+    this.scoreTween = null;
     this.root.remove();
   }
 }
