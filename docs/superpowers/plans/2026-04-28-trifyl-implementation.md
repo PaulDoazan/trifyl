@@ -3134,6 +3134,7 @@ export class GameScreen {
   }
 
   destroy(): void {
+    for (const b of Object.values(this.bins)) b.destroy();
     this.pixi.gridLayer.removeChild(this.pixiContainer);
     this.pixiContainer.destroy({ children: true });
     this.hud.destroy();
