@@ -1,0 +1,44 @@
+.overlay {
+  position: absolute;
+  z-index: 3;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  padding: 32px 40px;
+  pointer-events: auto;
+  opacity: 0;
+}
+.overlay--end {
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255,255,255,0.92);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+  min-width: 600px;
+}
+.overlay--end h2 { font-size: 36px; font-weight: 700; }
+.overlay--end .score { font-size: 64px; font-weight: 800; color: var(--color-menu-from); }
+.overlay--end button {
+  padding: 16px 40px;
+  font-size: 24px;
+  font-weight: 600;
+  background: var(--color-menu-from);
+  color: white;
+  border-radius: var(--radius-md);
+}
+
+.overlay--edu {
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(40,40,40,0.92);
+  color: white;
+  text-align: center;
+  font-size: 32px;
+  line-height: 1.4;
+  max-width: 1100px;
+  border-left: 8px solid var(--color-warning);
+}
