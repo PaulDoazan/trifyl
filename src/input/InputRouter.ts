@@ -36,7 +36,7 @@ export class InputRouter {
 
   getSelected(): Pos | null { return this.selected; }
 
-  setSelected(p: Pos | null): void { this.selected = p; }
+  setSelected(p: Pos | null): void { this.selected = p; this.grid.setSelection(p); }
 
   private emit(intent: SwapIntent): void {
     for (const cb of this.listeners) cb(intent);
@@ -52,6 +52,7 @@ export class InputRouter {
     const a = this.downCell;
     this.downCell = null;
     this.selected = null;
+    this.grid.setSelection(null);
     if (this.inBounds(target)) this.emit({ a, b: target });
   }
 
@@ -62,6 +63,7 @@ export class InputRouter {
     this.downCell = cell;
     this.downX = e.global.x;
     this.downY = e.global.y;
+    this.grid.setSelection(cell); // feedback immédiat sur la case pressée
   };
 
   private handlePointerMove = (e: FederatedPointerEvent): void => {
@@ -98,6 +100,7 @@ export class InputRouter {
     if (movedFar) {
       // an incomplete drag (moved past deadzone but never reached fire threshold)
       this.downCell = null;
+      this.grid.setSelection(null);
       return;
     }
 
@@ -117,5 +120,6 @@ export class InputRouter {
     } else {
       this.selected = cell;
     }
+    this.grid.setSelection(this.selected);
   };
 }

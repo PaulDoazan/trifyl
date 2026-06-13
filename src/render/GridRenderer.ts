@@ -17,6 +17,7 @@ export interface GridLayout {
 export class GridRenderer {
   readonly container: Container;
   readonly hitArea: Graphics;
+  private readonly highlight: Graphics;
   private tiles: (TileSprite | null)[][];
   layout: GridLayout;
 
@@ -27,9 +28,27 @@ export class GridRenderer {
     this.container = new Container();
     this.hitArea = new Graphics();
     this.container.addChild(this.hitArea);
+    // Surlignage de la case sélectionnée : sous les tuiles (ajoutées ensuite), au-dessus du fond.
+    this.highlight = new Graphics();
+    this.highlight.visible = false;
+    this.container.addChild(this.highlight);
     this.tiles = Array.from({ length: level.size }, () => Array.from({ length: level.size }, () => null));
     this.layout = this.computeLayout();
     this.drawHitArea();
+  }
+
+  /** Met en évidence la case sélectionnée (plus claire) ; null pour l'effacer. */
+  setSelection(pos: Pos | null): void {
+    if (!pos) { this.highlight.visible = false; return; }
+    const { originX, originY, tileW, tileH } = this.layout;
+    const inset = 4;
+    const x = originX + pos.col * tileW + inset;
+    const y = originY + pos.row * tileH + inset;
+    const w = tileW - inset * 2;
+    const h = tileH - inset * 2;
+    this.highlight.clear();
+    this.highlight.roundRect(x, y, w, h, Math.min(w, h) * 0.16).fill({ color: 0xffffff, alpha: 0.22 });
+    this.highlight.visible = true;
   }
 
   private computeLayout(): GridLayout {
