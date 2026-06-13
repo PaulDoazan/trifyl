@@ -13,18 +13,16 @@
   gap: 24px;
   pointer-events: auto;
 }
-.menu__infos { display: flex; flex-direction: column; gap: 4px; }
-.menu__score { font-size: 48px; font-weight: 700; line-height: 1; }
-.menu__score-label { font-size: 18px; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.08em; }
 .menu__level { font-size: 64px; font-weight: 900; line-height: 1; margin-top: 8px; }
-.menu__bins { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; flex: 1; }
-.menu__bin-label {
-  font-size: 20px;
-  font-weight: 500;
-  padding: 8px 12px;
-  background: rgba(255,255,255,0.12);
-  border-radius: var(--radius-sm);
-  align-self: flex-end;
+.menu__bins { display: flex; flex-direction: column; gap: 16px; align-items: center; }
+.bin-gauge { position: relative; width: 140px; height: 180px; }
+.bin-gauge__vide,
+.bin-gauge__pleine { position: absolute; left: 0; bottom: 0; width: 140px; height: 180px; background: center / contain no-repeat; }
+.bin-gauge__fill {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: 0;
+  overflow: hidden;
+  transition: height 400ms ease-out;
 }
 .menu__footer { display: flex; gap: 16px; margin-top: auto; }
 .menu__btn {
@@ -38,3 +36,7 @@
   transition: background 0.2s;
 }
 .menu__btn:hover, .menu__btn:active { background: rgba(255,255,255,0.28); }
+.menu__btn--icon {
+  width: 120px; height: 60px; border: none; background: center / contain no-repeat;
+  background-color: transparent; cursor: pointer;
+}

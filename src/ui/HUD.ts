@@ -1,13 +1,7 @@
-import { gsap } from 'gsap';
 import { MENU_WIDTH } from '@/app/config';
-import { ANIM } from '@/app/animation-config';
-import type { BinKind } from '@/game/waste';
-
-const BIN_LABELS: Record<Exclude<BinKind, 'hazardous'>, string> = {
-  yellow: 'Bac jaune — Recyclables',
-  black: 'Sac noir — Résiduels',
-  orange: 'Sac orange — Biodéchets',
-};
+import type { AssetProvider } from '@/assets/AssetProvider';
+import { BIN_CATEGORIES, type BinCategory } from '@/game/config-loader';
+import { BinGauge } from './BinGauge';
 
 export interface HUDCallbacks {
   onHome: () => void;
@@ -16,52 +10,45 @@ export interface HUDCallbacks {
 
 export class HUD {
   readonly root: HTMLElement;
-  private scoreEl: HTMLElement;
-  private scoreObj = { v: 0 };
-  private scoreTween: gsap.core.Tween | null = null;
+  private gauges: Record<BinCategory, BinGauge>;
 
-  constructor(level: 1 | 2 | 3, callbacks: HUDCallbacks) {
+  constructor(level: 1 | 2 | 3, assets: AssetProvider, homeUrl: string, quitterUrl: string, callbacks: HUDCallbacks) {
     const m = document.createElement('aside');
     m.className = 'menu';
     m.style.width = `${MENU_WIDTH}px`;
 
-    m.innerHTML = `
-      <div class="menu__infos">
-        <span class="menu__score-label">Score</span>
-        <span class="menu__score" data-score>0</span>
-      </div>
-      <div class="menu__level">Niveau ${String(level).padStart(2, '0')}</div>
-      <div class="menu__bins">
-        <div class="menu__bin-label">${BIN_LABELS.yellow}</div>
-        <div class="menu__bin-label">${BIN_LABELS.black}</div>
-        <div class="menu__bin-label">${BIN_LABELS.orange}</div>
-      </div>
-      <div class="menu__footer">
-        <button class="menu__btn" data-home>Accueil</button>
-        <button class="menu__btn" data-quit>Quitter le jeu</button>
-      </div>
-    `;
+    const lvl = document.createElement('div');
+    lvl.className = 'menu__level';
+    lvl.textContent = `Niveau ${String(level).padStart(2, '0')}`;
+
+    const binsWrap = document.createElement('div');
+    binsWrap.className = 'menu__bins';
+    this.gauges = {} as Record<BinCategory, BinGauge>;
+    for (const bin of BIN_CATEGORIES) {
+      const g = new BinGauge(assets.getBinVideUrl(level, bin), assets.getBinPleineUrl(bin));
+      this.gauges[bin] = g;
+      binsWrap.appendChild(g.root);
+    }
+
+    const footer = document.createElement('div');
+    footer.className = 'menu__footer';
+    const homeBtn = document.createElement('button');
+    homeBtn.className = 'menu__btn menu__btn--icon';
+    homeBtn.style.backgroundImage = `url("${homeUrl}")`;
+    homeBtn.onclick = callbacks.onHome;
+    const quitBtn = document.createElement('button');
+    quitBtn.className = 'menu__btn menu__btn--icon';
+    quitBtn.style.backgroundImage = `url("${quitterUrl}")`;
+    quitBtn.onclick = callbacks.onQuit;
+    footer.append(homeBtn, quitBtn);
+
+    m.append(lvl, binsWrap, footer);
     this.root = m;
-    this.scoreEl = m.querySelector('[data-score]') as HTMLElement;
-
-    (m.querySelector('[data-home]') as HTMLButtonElement).onclick = callbacks.onHome;
-    (m.querySelector('[data-quit]') as HTMLButtonElement).onclick = callbacks.onQuit;
   }
 
-  setScore(value: number): void {
-    this.scoreTween?.kill();
-    this.scoreTween = gsap.to(this.scoreObj, {
-      v: value,
-      duration: ANIM.scoreCountUp.duration,
-      ease: ANIM.scoreCountUp.ease,
-      onUpdate: () => { this.scoreEl.textContent = String(Math.round(this.scoreObj.v)); },
-      onComplete: () => { this.scoreEl.textContent = String(value); },
-    });
+  setFill(bin: BinCategory, ratio: number): void {
+    this.gauges[bin].setFill(ratio);
   }
 
-  destroy(): void {
-    this.scoreTween?.kill();
-    this.scoreTween = null;
-    this.root.remove();
-  }
+  destroy(): void { this.root.remove(); }
 }
