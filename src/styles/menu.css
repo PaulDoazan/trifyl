@@ -4,16 +4,16 @@
   left: 0;
   width: var(--menu-w);
   height: var(--stage-h);
-  background: linear-gradient(180deg, var(--color-menu-from), var(--color-menu-to));
   color: var(--color-menu-text);
   z-index: 2;
   display: flex;
   flex-direction: column;
-  padding: 48px 40px;
+  /* Le panneau, les étoiles et « Niveau X » sont dans l'image de fond ;
+     on dégage le haut pour placer les jauges sous le libellé peint. */
+  padding: 230px 40px 56px;
   gap: 24px;
   pointer-events: auto;
 }
-.menu__level { font-size: 64px; font-weight: 900; line-height: 1; margin-top: 8px; }
 .menu__bins { display: flex; flex-direction: column; gap: 16px; align-items: center; }
 .bin-gauge { position: relative; width: 140px; height: 180px; }
 .bin-gauge__vide,

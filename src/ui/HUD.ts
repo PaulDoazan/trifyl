@@ -17,9 +17,7 @@ export class HUD {
     m.className = 'menu';
     m.style.width = `${MENU_WIDTH}px`;
 
-    const lvl = document.createElement('div');
-    lvl.className = 'menu__level';
-    lvl.textContent = `Niveau ${String(level).padStart(2, '0')}`;
+    // Le libellé « Niveau X » et les étoiles sont déjà dessinés dans l'image de fond (grille_nivX.png).
 
     const binsWrap = document.createElement('div');
     binsWrap.className = 'menu__bins';
@@ -42,7 +40,7 @@ export class HUD {
     quitBtn.onclick = callbacks.onQuit;
     footer.append(homeBtn, quitBtn);
 
-    m.append(lvl, binsWrap, footer);
+    m.append(binsWrap, footer);
     this.root = m;
   }
 

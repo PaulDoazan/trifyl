@@ -1,4 +1,4 @@
-import { Container, Graphics, Sprite, type Texture } from 'pixi.js';
+import { Container, Graphics } from 'pixi.js';
 import { gsap } from 'gsap';
 import { TileSprite } from './TileSprite';
 import type { AssetProvider } from '@/assets/AssetProvider';
@@ -29,14 +29,6 @@ export class GridRenderer {
     this.tiles = Array.from({ length: level.size }, () => Array.from({ length: level.size }, () => null));
     this.layout = this.computeLayout();
     this.drawHitArea();
-  }
-
-  setBackground(texture: Texture): void {
-    const { originX, originY, tileSize } = this.layout;
-    const total = tileSize * this.level.size;
-    const bg = new Sprite(texture);
-    bg.x = originX; bg.y = originY; bg.width = total; bg.height = total;
-    this.container.addChildAt(bg, 0);
   }
 
   private computeLayout(): GridLayout {

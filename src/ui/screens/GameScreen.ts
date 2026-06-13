@@ -1,5 +1,5 @@
 import { gsap } from 'gsap';
-import { Container } from 'pixi.js';
+import { Container, Sprite } from 'pixi.js';
 import type { PixiApp } from '@/render/PixiApp';
 import type { AssetProvider } from '@/assets/AssetProvider';
 import { GridRenderer } from '@/render/GridRenderer';
@@ -15,7 +15,7 @@ import { createPrng } from '@/game/prng';
 import { WASTE_META } from '@/game/waste-data';
 import { isSpecialCategory, BIN_CATEGORIES, type BinCategory, type SpecialCategory } from '@/game/config-loader';
 import type { Pos } from '@/game/grid';
-import { MENU_WIDTH, STAGE_HEIGHT } from '@/app/config';
+import { MENU_WIDTH, STAGE_HEIGHT, STAGE_WIDTH } from '@/app/config';
 
 export interface GameScreenCallbacks {
   onHome: () => void;
@@ -53,8 +53,13 @@ export class GameScreen {
     this.state = createGameState(getLevelConfig(level), this.prng);
 
     this.pixiContainer = new Container();
+
+    // Fond plein écran (design complet de l'écran de jeu) derrière les tuiles.
+    const bg = new Sprite(assets.getGridTexture(level));
+    bg.x = 0; bg.y = 0; bg.width = STAGE_WIDTH; bg.height = STAGE_HEIGHT;
+    this.pixiContainer.addChild(bg);
+
     this.grid = new GridRenderer(this.state.config, assets);
-    this.grid.setBackground(this.assets.getGridTexture(level));
     this.grid.populate(this.state.grid);
     this.pixiContainer.addChild(this.grid.container);
 
