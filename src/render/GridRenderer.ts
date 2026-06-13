@@ -37,9 +37,18 @@ export class GridRenderer {
     this.drawHitArea();
   }
 
-  /** Met en évidence la case sélectionnée (plus claire) ; null pour l'effacer. */
+  /** Met en évidence la case pressée (plus claire) ; null pour l'estomper (fondu). */
   setSelection(pos: Pos | null): void {
-    if (!pos) { this.highlight.visible = false; return; }
+    gsap.killTweensOf(this.highlight);
+    if (!pos) {
+      gsap.to(this.highlight, {
+        alpha: 0,
+        duration: 0.2,
+        ease: 'power1.out',
+        onComplete: () => { if (!this.highlight.destroyed) this.highlight.visible = false; },
+      });
+      return;
+    }
     const { originX, originY, tileW, tileH } = this.layout;
     const inset = 4;
     const x = originX + pos.col * tileW + inset;
@@ -48,6 +57,7 @@ export class GridRenderer {
     const h = tileH - inset * 2;
     this.highlight.clear();
     this.highlight.roundRect(x, y, w, h, Math.min(w, h) * 0.16).fill({ color: 0xffffff, alpha: 0.22 });
+    this.highlight.alpha = 1;
     this.highlight.visible = true;
   }
 

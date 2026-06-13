@@ -120,6 +120,7 @@ export class InputRouter {
     } else {
       this.selected = cell;
     }
-    this.grid.setSelection(this.selected);
+    // La case éclaircie s'estompe dès qu'on relâche le doigt (le surlignage est un feedback d'appui).
+    this.grid.setSelection(null);
   };
 }
