@@ -5,5 +5,3 @@ export const PLAY_AREA_X = MENU_WIDTH;
 export const PLAY_AREA_WIDTH = STAGE_WIDTH - MENU_WIDTH;
 export const PLAY_AREA_HEIGHT = STAGE_HEIGHT;
 export const GRID_PADDING = 80;
-export const IDLE_MS = 60_000;
-export const EDU_OVERLAY_MS = 4500;

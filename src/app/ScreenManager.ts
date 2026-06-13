@@ -1,13 +1,12 @@
 import { gsap } from 'gsap';
 import { ANIM } from './animation-config';
 
-export type ScreenKey = 'welcome' | 'game' | 'screensaver' | 'endmedia';
+export type ScreenKey = 'veille' | 'home' | 'game' | 'endmedia';
 
 interface ScreenEntry { key: ScreenKey; root: HTMLElement; }
 
 export class ScreenManager {
   private current: ScreenEntry | null = null;
-  private previousNonScreensaver: ScreenKey = 'welcome';
   private screens = new Map<ScreenKey, HTMLElement>();
 
   constructor(private readonly host: HTMLElement) {}
@@ -21,9 +20,6 @@ export class ScreenManager {
     const root = this.screens.get(key);
     if (!root) throw new Error(`screen not registered: ${key}`);
     if (this.current?.key === key) return;
-    if (key !== 'screensaver' && this.current?.key !== 'screensaver') {
-      this.previousNonScreensaver = this.current?.key ?? key;
-    }
     if (this.current) {
       const prev = this.current;
       gsap.to(prev.root, {
@@ -35,17 +31,6 @@ export class ScreenManager {
     root.classList.add('screen--active');
     gsap.fromTo(root, { opacity: 0 }, { opacity: 1, duration: ANIM.screenCrossfade.duration });
     this.current = { key, root };
-  }
-
-  showScreensaver(): void {
-    if (this.current?.key !== 'screensaver') {
-      this.previousNonScreensaver = this.current?.key ?? 'welcome';
-    }
-    this.show('screensaver');
-  }
-
-  exitScreensaver(): void {
-    this.show(this.previousNonScreensaver);
   }
 
   currentKey(): ScreenKey | null { return this.current?.key ?? null; }

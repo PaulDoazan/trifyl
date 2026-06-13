@@ -1,21 +1,23 @@
 import { PixiApp } from '@/render/PixiApp';
-import { PlaceholderAssetProvider } from '@/assets/PlaceholderAssetProvider';
+import { FileAssetProvider } from '@/assets/FileAssetProvider';
 import { ScreenManager } from './ScreenManager';
-import { WelcomeScreen } from '@/ui/screens/WelcomeScreen';
+import { VeilleScreen } from '@/ui/screens/VeilleScreen';
+import { HomeScreen } from '@/ui/screens/HomeScreen';
 import { EndMediaScreen } from '@/ui/screens/EndMediaScreen';
-import { ScreensaverScreen } from '@/ui/screens/ScreensaverScreen';
 import { GameScreen } from '@/ui/screens/GameScreen';
-import { ScreensaverScene } from '@/render/ScreensaverScene';
+import { LevelCompleteOverlay } from '@/ui/overlays/LevelCompleteOverlay';
 import { IdleTracker } from '@/input/IdleTracker';
-import { IDLE_MS } from './config';
+import { GAME_CONFIG } from '@/game/config-loader';
 
 export class App {
   private pixi!: PixiApp;
-  private assets!: PlaceholderAssetProvider;
+  private assets!: FileAssetProvider;
   private screens!: ScreenManager;
   private idle!: IdleTracker;
-  private screensaverScene!: ScreensaverScene;
   private currentGame: GameScreen | null = null;
+  private currentLevel: 1 | 2 | 3 = 1;
+  private pilesShownRef = { value: false };
+  private levelComplete!: LevelCompleteOverlay;
 
   constructor(private readonly host: HTMLElement) {}
 
@@ -28,77 +30,89 @@ export class App {
     this.pixi = await PixiApp.create();
     this.pixi.mount(this.host);
 
-    this.assets = new PlaceholderAssetProvider(this.pixi.app.renderer);
+    this.assets = new FileAssetProvider();
     await this.assets.init();
-
-    this.screensaverScene = new ScreensaverScene(this.assets);
-    this.pixi.screensaverLayer.addChild(this.screensaverScene.container);
 
     this.screens = new ScreenManager(this.host);
 
-    const welcome = new WelcomeScreen({
-      onSelectLevel: (lvl) => this.startGame(lvl),
+    const veille = new VeilleScreen(this.assets.getScreenImageUrl('veille'), this.assets.getButtonUrl('touchez'), {
+      onStart: () => this.goHome(),
+    });
+    const home = new HomeScreen(this.assets.getScreenImageUrl('home'), this.assets.getButtonUrl('commencer'), {
+      onStart: () => this.startNewGame(),
     });
     const endmedia = new EndMediaScreen({
       onReplay: () => this.goHome(),
       onHome: () => this.goHome(),
     });
-    const screensaver = new ScreensaverScreen({
-      onWake: () => this.exitScreensaver(),
-    });
 
-    this.screens.register('welcome', welcome.root);
+    this.screens.register('veille', veille.root);
+    this.screens.register('home', home.root);
     this.screens.register('endmedia', endmedia.root);
-    this.screens.register('screensaver', screensaver.root);
 
-    this.screens.show('welcome');
-
-    this.idle = new IdleTracker(IDLE_MS);
-    this.idle.onIdle(() => this.enterScreensaver());
-    this.idle.start();
-
-    this.pixi.app.ticker.add(() => {
-      if (this.pixi.screensaverLayer.visible) this.screensaverScene.update(this.pixi.app.ticker);
+    this.levelComplete = new LevelCompleteOverlay({
+      onContinue: () => this.continueNextLevel(),
+      onQuit: () => this.goMedia(),
     });
+    this.host.appendChild(this.levelComplete.root);
+
+    this.screens.show('veille');
+
+    this.idle = new IdleTracker(GAME_CONFIG.timings.idleReturnToHomeMs);
+    this.idle.onIdle(() => this.onIdleTimeout());
+    this.idle.start();
   }
 
-  private startGame(level: 1 | 2 | 3): void {
+  private onIdleTimeout(): void {
+    const key = this.screens.currentKey();
+    if (key === 'game' || key === 'endmedia') this.goHome();
+  }
+
+  private startNewGame(): void {
+    this.pilesShownRef = { value: false };
+    this.currentLevel = 1;
+    this.startLevel(1);
+  }
+
+  private continueNextLevel(): void {
+    this.levelComplete.hide();
+    const next = (this.currentLevel + 1) as 1 | 2 | 3;
+    this.currentLevel = next;
+    this.startLevel(next);
+  }
+
+  private startLevel(level: 1 | 2 | 3): void {
     this.disposeCurrentGame();
-    const game = new GameScreen(this.pixi, this.assets, level, {
+    const game = new GameScreen(this.pixi, this.assets, level, this.pilesShownRef, {
       onHome: () => this.goHome(),
-      onSeeResult: () => {
-        this.disposeCurrentGame();
-        this.screens.show('endmedia');
-      },
+      onQuit: () => this.goMedia(),
+      onLevelComplete: () => this.onLevelComplete(level),
     });
     this.screens.register('game', game.root);
     this.screens.show('game');
     this.currentGame = game;
   }
 
+  private onLevelComplete(level: 1 | 2 | 3): void {
+    if (level >= 3) { this.goMedia(); return; }
+    this.levelComplete.show();
+  }
+
   private goHome(): void {
+    this.levelComplete.hide();
     this.disposeCurrentGame();
-    this.screens.show('welcome');
+    this.screens.show('home');
+    this.idle.reset();
+  }
+
+  private goMedia(): void {
+    this.levelComplete.hide();
+    this.disposeCurrentGame();
+    this.screens.show('endmedia');
+    this.idle.reset();
   }
 
   private disposeCurrentGame(): void {
-    if (this.currentGame) {
-      this.currentGame.destroy();
-      this.currentGame = null;
-    }
-  }
-
-  private enterScreensaver(): void {
-    if (this.screens.currentKey() === 'screensaver') return;
-    this.screensaverScene.start();
-    this.pixi.screensaverLayer.visible = true;
-    this.screens.showScreensaver();
-  }
-
-  private exitScreensaver(): void {
-    this.screensaverScene.stop();
-    this.pixi.screensaverLayer.visible = false;
-    this.screens.exitScreensaver();
-    this.idle.reset();
+    if (this.currentGame) { this.currentGame.destroy(); this.currentGame = null; }
   }
 }
