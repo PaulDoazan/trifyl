@@ -1,7 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { createInitialGrid } from '@/game/initial-grid';
 import { findMatches, findValidMoves } from '@/game/matching';
-import { LEVEL_1, LEVEL_2, LEVEL_3 } from '@/game/levels';
+import { getLevelConfig } from '@/game/levels';
+
+const LEVEL_1 = getLevelConfig(1);
+const LEVEL_2 = getLevelConfig(2);
+const LEVEL_3 = getLevelConfig(3);
 import { createPrng } from '@/game/prng';
 
 describe('createInitialGrid', () => {

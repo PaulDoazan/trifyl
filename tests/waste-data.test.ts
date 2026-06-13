@@ -1,32 +1,26 @@
 import { describe, it, expect } from 'vitest';
 import { ALL_WASTE_TYPES, WASTE_META } from '@/game/waste-data';
+import { isSpecialCategory } from '@/game/config-loader';
 
 describe('waste-data', () => {
-  it('every WasteType has metadata', () => {
+  it('chaque type a des métadonnées avec asset', () => {
     for (const t of ALL_WASTE_TYPES) {
-      const meta = WASTE_META[t];
-      expect(meta, `missing meta for ${t}`).toBeDefined();
-      expect(meta.label.length).toBeGreaterThan(0);
-      expect(meta.asset.length).toBeGreaterThan(0);
+      const m = WASTE_META[t];
+      expect(m, `missing meta for ${t}`).toBeDefined();
+      expect(m.asset.length).toBeGreaterThan(0);
     }
   });
 
-  it('hazardous wastes have educationalText, others do not', () => {
+  it('catégories connues', () => {
     for (const t of ALL_WASTE_TYPES) {
-      const meta = WASTE_META[t];
-      if (meta.bin === 'hazardous') {
-        expect(meta.educationalText).toBeDefined();
-        expect(meta.educationalText!.length).toBeGreaterThan(0);
-      } else {
-        expect(meta.educationalText).toBeUndefined();
-      }
+      expect(['yellow', 'black', 'orange', 'piles', 'textile', 'verre']).toContain(WASTE_META[t].category);
     }
   });
 
-  it('mapping is consistent: yellow=recyclables, black=residual, orange=biodéchets, hazardous=déchèterie', () => {
-    expect(WASTE_META.plastic_bottle.bin).toBe('yellow');
-    expect(WASTE_META.tissue.bin).toBe('black');
-    expect(WASTE_META.apple.bin).toBe('orange');
-    expect(WASTE_META.battery.bin).toBe('hazardous');
+  it('mapping de référence', () => {
+    expect(WASTE_META.eau.category).toBe('yellow');
+    expect(WASTE_META.banane.category).toBe('orange');
+    expect(WASTE_META.yaourt.category).toBe('black');
+    expect(isSpecialCategory(WASTE_META.pile.category)).toBe(true);
   });
 });

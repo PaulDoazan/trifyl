@@ -3,12 +3,14 @@ import { applyGravity, refillTop, applyCascade } from '@/game/cascade';
 import type { Grid } from '@/game/grid';
 import type { WasteType } from '@/game/waste';
 import { createPrng } from '@/game/prng';
-import { LEVEL_1 } from '@/game/levels';
+import { getLevelConfig } from '@/game/levels';
 
-const A: WasteType = 'apple';
-const B: WasteType = 'tissue';
-const C: WasteType = 'plastic_bottle';
-const D: WasteType = 'battery';
+const LEVEL_1 = getLevelConfig(1);
+
+const A: WasteType = 'eau';
+const B: WasteType = 'canette';
+const C: WasteType = 'banane';
+const D: WasteType = 'yaourt';
 
 const g = (rows: (WasteType | null)[][]): Grid => rows.map((r) => r.slice());
 

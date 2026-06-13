@@ -1,15 +1,12 @@
-export type BinKind = 'yellow' | 'black' | 'orange' | 'hazardous';
+import type { WasteCategory } from './config-loader';
 
-export type WasteType =
-  | 'plastic_bottle' | 'can' | 'cardboard' | 'milk_carton'
-  | 'dirty_yogurt_pot' | 'tissue' | 'broken_toy'
-  | 'apple' | 'coffee_grounds' | 'egg_shell'
-  | 'battery' | 'lightbulb' | 'medication';
+export type { WasteCategory, BinCategory, SpecialCategory } from './config-loader';
+
+// Un déchet est identifié par un id libre (clé du config).
+export type WasteType = string;
 
 export interface WasteMeta {
   type: WasteType;
-  bin: BinKind;
-  label: string;
-  educationalText?: string;
+  category: WasteCategory;
   asset: string;
 }
