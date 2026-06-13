@@ -35,7 +35,6 @@
   border-radius: var(--radius-md);
   transition: background 0.2s;
 }
-.menu__btn:hover, .menu__btn:active { background: rgba(255,255,255,0.28); }
 .menu__btn--icon {
   width: 120px; height: 60px; border: none; background: center / contain no-repeat;
   background-color: transparent; cursor: pointer;

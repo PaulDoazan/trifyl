@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { GAME_CONFIG, BIN_CATEGORIES, isSpecialCategory } from '@/game/config-loader';
 
 describe('config-loader', () => {
-  it('expose 3 niveaux avec tailles 5/8/10', () => {
-    expect(GAME_CONFIG.levels.map((l) => l.size)).toEqual([5, 8, 10]);
+  it('expose 3 niveaux avec tailles 5/7/10', () => {
+    expect(GAME_CONFIG.levels.map((l) => l.size)).toEqual([5, 7, 10]);
   });
 
   it('chaque niveau a une capacité pour les 3 poubelles', () => {

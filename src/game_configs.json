@@ -3,6 +3,9 @@
     "idleReturnToHomeMs": 300000,
     "eduOverlayMs": 4500
   },
+  "debug": {
+    "levelStarNav": true
+  },
   "levels": [
     {
       "level": 1,
@@ -25,7 +28,7 @@
     },
     {
       "level": 2,
-      "size": 8,
+      "size": 7,
       "gridAsset": "grille/grille_niv2",
       "binCapacity": { "yellow": 12, "black": 10, "orange": 10 },
       "binVideAsset": {

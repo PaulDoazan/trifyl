@@ -81,12 +81,20 @@ export class App {
     this.startLevel(next);
   }
 
+  // Navigation directe (debug) via les étoiles : relance la partie au niveau choisi.
+  private jumpToLevel(level: 1 | 2 | 3): void {
+    this.levelComplete.hide();
+    this.currentLevel = level;
+    this.startLevel(level);
+  }
+
   private startLevel(level: 1 | 2 | 3): void {
     this.disposeCurrentGame();
     const game = new GameScreen(this.pixi, this.assets, level, this.pilesShownRef, {
       onHome: () => this.goHome(),
       onQuit: () => this.goMedia(),
       onLevelComplete: () => this.onLevelComplete(level),
+      onJumpToLevel: (lvl) => this.jumpToLevel(lvl),
     });
     this.screens.register('game', game.root);
     this.screens.show('game');

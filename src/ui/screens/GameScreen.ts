@@ -20,6 +20,7 @@ export interface GameScreenCallbacks {
   onHome: () => void;
   onQuit: () => void;
   onLevelComplete: () => void;
+  onJumpToLevel: (level: 1 | 2 | 3) => void;
 }
 
 const BIN_HUD_Y: Record<BinCategory, number> = {
@@ -65,6 +66,7 @@ export class GameScreen {
     this.hud = new HUD(level, assets, assets.getButtonUrl('home'), assets.getButtonUrl('quitter'), {
       onHome: () => callbacks.onHome(),
       onQuit: () => callbacks.onQuit(),
+      onSelectLevel: (lvl) => callbacks.onJumpToLevel(lvl),
     });
     this.edu = new EduOverlay();
     this.end = new EndOverlay(assets.getPopupUrl('combinaison'), () => callbacks.onQuit());

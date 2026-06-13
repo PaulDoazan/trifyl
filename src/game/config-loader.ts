@@ -31,12 +31,20 @@ export interface Timings {
   eduOverlayMs: number;
 }
 
+export interface DebugConfig {
+  /** Rend les 3 étoiles du HUD cliquables pour sauter directement à un niveau (tests). */
+  levelStarNav: boolean;
+}
+
 export interface GameConfig {
   timings: Timings;
+  debug: DebugConfig;
   levels: LevelConfigRaw[];
 }
 
 function validate(cfg: GameConfig): GameConfig {
+  const dbg = (cfg.debug ?? {}) as Partial<DebugConfig>;
+  cfg.debug = { levelStarNav: dbg.levelStarNav ?? false };
   if (cfg.levels.length !== 3) throw new Error('game_configs: 3 niveaux attendus');
   for (const lvl of cfg.levels) {
     const ids = new Set<string>();

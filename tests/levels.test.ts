@@ -4,7 +4,7 @@ import { getLevelConfig } from '@/game/levels';
 describe('level configs', () => {
   it('tailles de grille 5/8/10', () => {
     expect(getLevelConfig(1).size).toBe(5);
-    expect(getLevelConfig(2).size).toBe(8);
+    expect(getLevelConfig(2).size).toBe(7);
     expect(getLevelConfig(3).size).toBe(10);
   });
 
