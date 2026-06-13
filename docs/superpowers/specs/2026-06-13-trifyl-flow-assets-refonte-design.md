@@ -49,8 +49,8 @@
 
 ### Inactivité
 - Suppression de l'`IdleTracker` 60s → screensaver Pixi (`ScreensaverScene`, `ScreensaverScreen` retirés).
-- Nouvelle règle unique : **5 min d'inactivité pendant une partie → retour Accueil** (partie abandonnée). Délai configurable (`timings.idleReturnToHomeMs`).
-- L'Accueil et la Veille n'ont pas de timer d'inactivité (la borne reste sur l'écran). *(à confirmer en revue : faut-il un retour Accueil→Veille ? Par défaut : non.)*
+- Règle unique : **5 min d'inactivité → retour Accueil**, appliquée sur l'écran de jeu et sur le Média (partie abandonnée le cas échéant). Délai configurable (`timings.idleReturnToHomeMs`).
+- L'Accueil est la cible du timer ; il n'a donc pas lui-même de timer (on y est déjà). La Veille est uniquement l'écran de démarrage (tap → Accueil), sans timer ; on n'y revient pas automatiquement.
 
 ---
 
