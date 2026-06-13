@@ -12,7 +12,6 @@ import { InputRouter } from '@/input/InputRouter';
 import { applySwap, createGameState, isLevelComplete, type GameState } from '@/game/GameState';
 import { getLevelConfig } from '@/game/levels';
 import { createPrng } from '@/game/prng';
-import { WASTE_META } from '@/game/waste-data';
 import { isSpecialCategory, BIN_CATEGORIES, type BinCategory, type SpecialCategory } from '@/game/config-loader';
 import type { Pos } from '@/game/grid';
 import { MENU_WIDTH, STAGE_HEIGHT, STAGE_WIDTH } from '@/app/config';
@@ -128,7 +127,7 @@ export class GameScreen {
     for (const event of result.events) {
       const tl = gsap.timeline();
       for (const m of event.step.matches) {
-        const cat = WASTE_META[m.type]!.category;
+        const cat = m.category;
         const sprites = this.grid.removeTilesAt(m.cells);
         if (isSpecialCategory(cat)) {
           for (const s of sprites) tl.add(trapVortex(s), 0);

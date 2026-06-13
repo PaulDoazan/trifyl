@@ -3,7 +3,13 @@ import type { Grid } from './grid';
 import { createEmptyGrid, getCell, setCell } from './grid';
 import { findValidMoves } from './matching';
 import type { Prng } from './prng';
-import type { WasteType } from './waste';
+import type { Cell } from './grid';
+import type { WasteCategory } from './waste';
+import { WASTE_META } from './waste-data';
+
+function catOf(cell: Cell): WasteCategory | null {
+  return cell === null ? null : (WASTE_META[cell]?.category ?? null);
+}
 
 export function createInitialGrid(level: LevelConfig, prng: Prng): Grid {
   const MAX_ATTEMPTS = 100;
@@ -19,16 +25,17 @@ function fillNoMatch(level: LevelConfig, prng: Prng): Grid {
   const grid = createEmptyGrid(n, n);
   for (let r = 0; r < n; r++) {
     for (let c = 0; c < n; c++) {
-      const forbidden = new Set<WasteType>();
-      if (c >= 2 && getCell(grid, r, c - 1) === getCell(grid, r, c - 2)) {
-        const v = getCell(grid, r, c - 1);
-        if (v !== null) forbidden.add(v);
+      // Interdit les catégories qui formeraient un combo de 3 (par famille) à la pose.
+      const forbidden = new Set<WasteCategory>();
+      if (c >= 2) {
+        const a = catOf(getCell(grid, r, c - 1));
+        if (a !== null && a === catOf(getCell(grid, r, c - 2))) forbidden.add(a);
       }
-      if (r >= 2 && getCell(grid, r - 1, c) === getCell(grid, r - 2, c)) {
-        const v = getCell(grid, r - 1, c);
-        if (v !== null) forbidden.add(v);
+      if (r >= 2) {
+        const a = catOf(getCell(grid, r - 1, c));
+        if (a !== null && a === catOf(getCell(grid, r - 2, c))) forbidden.add(a);
       }
-      const candidates = level.wasteTypes.filter((t) => !forbidden.has(t));
+      const candidates = level.wasteTypes.filter((t) => !forbidden.has(WASTE_META[t]!.category));
       const pick = candidates.length > 0
         ? candidates[prng.intRange(0, candidates.length - 1)]!
         : level.wasteTypes[prng.intRange(0, level.wasteTypes.length - 1)]!;

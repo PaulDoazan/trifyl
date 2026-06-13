@@ -5,7 +5,6 @@ import { applyCascade, type CascadeStep } from './cascade';
 import { createInitialGrid } from './initial-grid';
 import type { LevelConfig } from './levels';
 import type { Prng } from './prng';
-import { WASTE_META } from './waste-data';
 import { BIN_CATEGORIES, isSpecialCategory, type BinCategory, type SpecialCategory } from './config-loader';
 
 export interface GameState {
@@ -62,7 +61,7 @@ export function applySwap(state: GameState, a: Pos, b: Pos, prng: Prng): SwapRes
   for (const step of cascade.events) {
     const specials: SpecialCategory[] = [];
     for (const m of step.matches) {
-      const cat = WASTE_META[m.type]!.category;
+      const cat = m.category;
       if (isSpecialCategory(cat)) {
         if (!specials.includes(cat)) specials.push(cat);
       } else {
