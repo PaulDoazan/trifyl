@@ -92,3 +92,39 @@
   font-size: 28px;
   opacity: 0.7;
 }
+
+.veille {
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color: #fff;
+  cursor: pointer;
+}
+.veille__touch {
+  position: absolute;
+  left: 50%;
+  bottom: 120px;
+  transform: translateX(-50%);
+  width: 260px;
+  height: 90px;
+  border: none;
+  background: center / contain no-repeat;
+  background-color: transparent;
+  cursor: pointer;
+}
+.home {
+  background-size: cover;
+  background-position: center;
+  background-color: #243018;
+}
+.home__start {
+  position: absolute;
+  right: 80px;
+  bottom: 80px;
+  width: 220px;
+  height: 70px;
+  border: none;
+  background: center / contain no-repeat;
+  background-color: transparent;
+  cursor: pointer;
+}
