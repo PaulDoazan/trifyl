@@ -39,8 +39,9 @@ describe('GameState', () => {
     expect(result.kind).toBe('resolved');
     if (result.kind === 'resolved') {
       expect(result.events.length).toBeGreaterThanOrEqual(1);
+      // Niveau 1 n'a que des catégories poubelle (pas de spécial) : un match remplit forcément une poubelle.
       const totalBinFill = Object.values(result.next.bins).reduce((acc, v) => acc + v, 0);
-      expect(totalBinFill).toBeGreaterThanOrEqual(0);
+      expect(totalBinFill).toBeGreaterThan(0);
     }
   });
 
