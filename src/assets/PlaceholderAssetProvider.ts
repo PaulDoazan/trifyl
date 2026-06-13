@@ -1,6 +1,7 @@
 import { Texture, type Renderer } from 'pixi.js';
 import type { AssetProvider } from './AssetProvider';
-import type { BinKind, WasteType } from '@/game/waste';
+import type { BinCategory } from '@/game/config-loader';
+import type { WasteType } from '@/game/waste';
 import { ALL_WASTE_TYPES } from '@/game/waste-data';
 import { buildTilePlaceholder, buildBinPlaceholder, generateTexture } from './shapes';
 
@@ -10,8 +11,8 @@ const BIN_FRAME_COUNT = 8;
 
 export class PlaceholderAssetProvider implements AssetProvider {
   private tiles = new Map<WasteType, Texture>();
-  private binIdle = new Map<Exclude<BinKind, 'hazardous'>, Texture>();
-  private binFrames = new Map<Exclude<BinKind, 'hazardous'>, Texture[]>();
+  private binIdle = new Map<BinCategory, Texture>();
+  private binFrames = new Map<BinCategory, Texture[]>();
 
   constructor(private readonly renderer: Renderer) {}
 
@@ -31,7 +32,7 @@ export class PlaceholderAssetProvider implements AssetProvider {
     }
   }
 
-  private renderBinFrame(bin: Exclude<BinKind, 'hazardous'>, openness: number): Texture {
+  private renderBinFrame(bin: BinCategory, openness: number): Texture {
     const c = buildBinPlaceholder(bin, BIN_SIZE, openness);
     return generateTexture(this.renderer, c, BIN_SIZE, BIN_SIZE);
   }
@@ -42,15 +43,22 @@ export class PlaceholderAssetProvider implements AssetProvider {
     return t;
   }
 
-  getBinIdleTexture(bin: Exclude<BinKind, 'hazardous'>): Texture {
+  getBinIdleTexture(bin: BinCategory): Texture {
     const t = this.binIdle.get(bin);
     if (!t) throw new Error(`No idle for bin: ${bin}`);
     return t;
   }
 
-  getBinOpenFrames(bin: Exclude<BinKind, 'hazardous'>): Texture[] {
+  getBinOpenFrames(bin: BinCategory): Texture[] {
     const f = this.binFrames.get(bin);
     if (!f) throw new Error(`No frames for bin: ${bin}`);
     return f;
   }
+
+  getGridTexture(): Texture { return Texture.EMPTY; }
+  getScreenImageUrl(): string { return ''; }
+  getButtonUrl(): string { return ''; }
+  getPopupUrl(): string { return ''; }
+  getBinVideUrl(): string { return ''; }
+  getBinPleineUrl(): string { return ''; }
 }
