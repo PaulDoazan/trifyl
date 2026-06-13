@@ -6,16 +6,13 @@ export class PixiApp {
   readonly menuLayer: Container;
   readonly gridLayer: Container;
   readonly fxLayer: Container;
-  readonly screensaverLayer: Container;
 
   private constructor(app: Application) {
     this.app = app;
     this.menuLayer = new Container();
     this.gridLayer = new Container();
     this.fxLayer = new Container();
-    this.screensaverLayer = new Container();
-    this.screensaverLayer.visible = false;
-    app.stage.addChild(this.menuLayer, this.gridLayer, this.fxLayer, this.screensaverLayer);
+    app.stage.addChild(this.menuLayer, this.gridLayer, this.fxLayer);
   }
 
   static async create(): Promise<PixiApp> {

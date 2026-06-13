@@ -14,13 +14,11 @@ function url(relative: string): string {
   return u;
 }
 
-const BINS: readonly BinCategory[] = ['yellow', 'black', 'orange'];
 const BIN_FILE: Record<BinCategory, string> = { yellow: 'jaune', black: 'noire', orange: 'orange' };
 
 export class FileAssetProvider implements AssetProvider {
   private tiles = new Map<WasteType, Texture>();
   private grids = new Map<number, Texture>();
-  private binVideTex = new Map<string, Texture>();
 
   async init(): Promise<void> {
     for (const t of ALL_WASTE_TYPES) {
@@ -28,9 +26,6 @@ export class FileAssetProvider implements AssetProvider {
     }
     for (const lvl of [1, 2, 3] as const) {
       this.grids.set(lvl, await Assets.load(url(`grille/grille_niv${lvl}`)));
-      for (const bin of BINS) {
-        this.binVideTex.set(`${lvl}:${bin}`, await Assets.load(url(`poubelles/niv${lvl}_poub_${BIN_FILE[bin]}_vide`)));
-      }
     }
   }
 
@@ -39,10 +34,6 @@ export class FileAssetProvider implements AssetProvider {
     if (!t) throw new Error(`pas de texture pour ${type}`);
     return t;
   }
-
-  // Bins ne sont plus des sprites Pixi animés (jauges DOM) ; on renvoie la texture vide niveau 1.
-  getBinIdleTexture(bin: BinCategory): Texture { return this.binVideTex.get(`1:${bin}`)!; }
-  getBinOpenFrames(bin: BinCategory): Texture[] { return [this.binVideTex.get(`1:${bin}`)!]; }
 
   getGridTexture(level: 1 | 2 | 3): Texture { return this.grids.get(level)!; }
 

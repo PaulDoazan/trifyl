@@ -9,8 +9,6 @@ export type PopupKey = 'piles' | 'textile' | 'verre' | 'combinaison';
 export interface AssetProvider {
   init(): Promise<void>;
   getTileTexture(type: WasteType): Texture;
-  getBinIdleTexture(bin: BinCategory): Texture;
-  getBinOpenFrames(bin: BinCategory): Texture[];
   getGridTexture(level: 1 | 2 | 3): Texture;
   getScreenImageUrl(key: ScreenImageKey): string;
   getButtonUrl(key: ButtonKey): string;
