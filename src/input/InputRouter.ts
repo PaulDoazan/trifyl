@@ -68,16 +68,17 @@ export class InputRouter {
     if (!this.enabled || !this.downCell) return;
     const dx = e.global.x - this.downX;
     const dy = e.global.y - this.downY;
-    const tileSize = this.grid.layout.tileSize;
-    const fireThreshold = tileSize * FIRE_RATIO;
+    const { tileW, tileH } = this.grid.layout;
 
     if (Math.abs(dx) >= Math.abs(dy)) {
+      const fireThreshold = tileW * FIRE_RATIO;
       if (dx >= fireThreshold) {
         this.fireSwap({ row: this.downCell.row, col: this.downCell.col + 1 });
       } else if (dx <= -fireThreshold) {
         this.fireSwap({ row: this.downCell.row, col: this.downCell.col - 1 });
       }
     } else {
+      const fireThreshold = tileH * FIRE_RATIO;
       if (dy >= fireThreshold) {
         this.fireSwap({ row: this.downCell.row + 1, col: this.downCell.col });
       } else if (dy <= -fireThreshold) {
@@ -90,8 +91,8 @@ export class InputRouter {
     if (!this.enabled || !this.downCell) return;
     const dx = e.global.x - this.downX;
     const dy = e.global.y - this.downY;
-    const tileSize = this.grid.layout.tileSize;
-    const deadzone = tileSize * TAP_DEADZONE_RATIO;
+    const { tileW, tileH } = this.grid.layout;
+    const deadzone = Math.min(tileW, tileH) * TAP_DEADZONE_RATIO;
     const movedFar = Math.abs(dx) > deadzone || Math.abs(dy) > deadzone;
 
     if (movedFar) {
