@@ -1,14 +1,15 @@
 import type { FederatedPointerEvent } from 'pixi.js';
 import type { GridRenderer } from '@/render/GridRenderer';
 import type { Pos } from '@/game/grid';
+import { resolveAxis, neighborOf, clampOffset, shouldCommit, type Axis } from './dragMath';
 
 export interface SwapIntent { a: Pos; b: Pos; }
 
-// Drag fires the swap as soon as the pointer crosses the center of the target tile
-// (i.e., delta ≥ 1 tile width on the dominant axis). Below TAP_DEADZONE_RATIO the
-// gesture is treated as a tap (used by tap-tap selection); between deadzone and
-// fire threshold the gesture is dropped (an incomplete drag, no swap).
-const FIRE_RATIO = 1.0;
+// Le déchet suit le doigt dès AXIS_LOCK_PX (verrou d'axe). Au relâchement, le swap
+// est validé s'il a été tiré au-delà de COMMIT_RATIO d'une case ; sinon retour en
+// place. Sous TAP_DEADZONE_RATIO, le geste retombe sur la sélection tap-tap.
+const AXIS_LOCK_PX = 6;
+const COMMIT_RATIO = 0.5;
 const TAP_DEADZONE_RATIO = 0.3;
 
 export class InputRouter {
@@ -16,6 +17,10 @@ export class InputRouter {
   private downX = 0;
   private downY = 0;
   private selected: Pos | null = null;
+  private dragging = false;
+  private dragAxis: Axis | null = null;
+  private dragOffset = 0;
+  private dragNeighbor: Pos | null = null;
   private listeners = new Set<(intent: SwapIntent) => void>();
   private enabled = true;
 
@@ -47,66 +52,15 @@ export class InputRouter {
     return this.grid.pixelToCell(px.x, px.y) !== null;
   }
 
-  private fireSwap(target: Pos): void {
-    if (!this.downCell) return;
-    const a = this.downCell;
+  private endGesture(): void {
     this.downCell = null;
-    this.selected = null;
-    this.grid.setSelection(null);
-    if (this.inBounds(target)) this.emit({ a, b: target });
+    this.dragging = false;
+    this.dragAxis = null;
+    this.dragOffset = 0;
+    this.dragNeighbor = null;
   }
 
-  private handlePointerDown = (e: FederatedPointerEvent): void => {
-    if (!this.enabled) return;
-    const cell = this.grid.pixelToCell(e.global.x, e.global.y);
-    if (!cell) return;
-    this.downCell = cell;
-    this.downX = e.global.x;
-    this.downY = e.global.y;
-    this.grid.setSelection(cell); // feedback immédiat sur la case pressée
-  };
-
-  private handlePointerMove = (e: FederatedPointerEvent): void => {
-    if (!this.enabled || !this.downCell) return;
-    const dx = e.global.x - this.downX;
-    const dy = e.global.y - this.downY;
-    const { tileW, tileH } = this.grid.layout;
-
-    if (Math.abs(dx) >= Math.abs(dy)) {
-      const fireThreshold = tileW * FIRE_RATIO;
-      if (dx >= fireThreshold) {
-        this.fireSwap({ row: this.downCell.row, col: this.downCell.col + 1 });
-      } else if (dx <= -fireThreshold) {
-        this.fireSwap({ row: this.downCell.row, col: this.downCell.col - 1 });
-      }
-    } else {
-      const fireThreshold = tileH * FIRE_RATIO;
-      if (dy >= fireThreshold) {
-        this.fireSwap({ row: this.downCell.row + 1, col: this.downCell.col });
-      } else if (dy <= -fireThreshold) {
-        this.fireSwap({ row: this.downCell.row - 1, col: this.downCell.col });
-      }
-    }
-  };
-
-  private handlePointerUp = (e: FederatedPointerEvent): void => {
-    if (!this.enabled || !this.downCell) return;
-    const dx = e.global.x - this.downX;
-    const dy = e.global.y - this.downY;
-    const { tileW, tileH } = this.grid.layout;
-    const deadzone = Math.min(tileW, tileH) * TAP_DEADZONE_RATIO;
-    const movedFar = Math.abs(dx) > deadzone || Math.abs(dy) > deadzone;
-
-    if (movedFar) {
-      // an incomplete drag (moved past deadzone but never reached fire threshold)
-      this.downCell = null;
-      this.grid.setSelection(null);
-      return;
-    }
-
-    // pure tap: feed into tap-tap selection
-    const cell = this.grid.pixelToCell(e.global.x, e.global.y) ?? this.downCell;
-    this.downCell = null;
+  private applyTapTap(cell: Pos): void {
     if (this.selected) {
       if (cell.row === this.selected.row && cell.col === this.selected.col) {
         this.selected = null;
@@ -120,6 +74,84 @@ export class InputRouter {
     } else {
       this.selected = cell;
     }
+  }
+
+  private handlePointerDown = (e: FederatedPointerEvent): void => {
+    if (!this.enabled) return;
+    const cell = this.grid.pixelToCell(e.global.x, e.global.y);
+    if (!cell) return;
+    this.downCell = cell;
+    this.downX = e.global.x;
+    this.downY = e.global.y;
+    this.dragging = false;
+    this.dragAxis = null;
+    this.dragOffset = 0;
+    this.dragNeighbor = null;
+    this.grid.beginDrag(cell);
+    this.grid.setSelection(cell); // feedback immédiat sur la case pressée
+  };
+
+  private handlePointerMove = (e: FederatedPointerEvent): void => {
+    if (!this.enabled || !this.downCell) return;
+    const dx = e.global.x - this.downX;
+    const dy = e.global.y - this.downY;
+
+    const axis = this.dragAxis ?? resolveAxis(dx, dy, AXIS_LOCK_PX);
+    if (!axis) return; // encore un quasi-appui : rien ne bouge
+    this.dragAxis = axis;
+    this.dragging = true;
+
+    const { tileW, tileH } = this.grid.layout;
+    const tile = axis === 'x' ? tileW : tileH;
+    const delta = axis === 'x' ? dx : dy;
+
+    let neighbor = neighborOf(this.downCell, axis, delta);
+    if (neighbor && !this.inBounds(neighbor)) neighbor = null;
+    const offset = neighbor ? clampOffset(delta, tile) : 0;
+
+    this.dragNeighbor = neighbor;
+    this.dragOffset = offset;
+    this.grid.updateDrag(axis, neighbor, offset);
+  };
+
+  private handlePointerUp = (e: FederatedPointerEvent): void => {
+    if (!this.enabled || !this.downCell) return;
+    const dx = e.global.x - this.downX;
+    const dy = e.global.y - this.downY;
+    const { tileW, tileH } = this.grid.layout;
+    const downCell = this.downCell;
+
+    if (this.dragging) {
+      const tile = this.dragAxis === 'x' ? tileW : tileH;
+      const neighbor = this.dragNeighbor;
+      const commit = neighbor !== null && shouldCommit(this.dragOffset, tile, COMMIT_RATIO);
+      this.endGesture();
+
+      if (commit && neighbor) {
+        this.grid.endDrag();
+        this.selected = null;
+        this.grid.setSelection(null);
+        this.emit({ a: downCell, b: neighbor });
+        return;
+      }
+
+      this.grid.cancelDrag();
+      const deadzone = Math.min(tileW, tileH) * TAP_DEADZONE_RATIO;
+      if (Math.abs(dx) <= deadzone && Math.abs(dy) <= deadzone) {
+        const cell = this.grid.pixelToCell(e.global.x, e.global.y) ?? downCell;
+        this.applyTapTap(cell);
+      } else {
+        this.selected = null;
+      }
+      this.grid.setSelection(null);
+      return;
+    }
+
+    // pur appui (jamais de drag) : sélection tap-tap
+    this.endGesture();
+    this.grid.endDrag();
+    const cell = this.grid.pixelToCell(e.global.x, e.global.y) ?? downCell;
+    this.applyTapTap(cell);
     // La case éclaircie s'estompe dès qu'on relâche le doigt (le surlignage est un feedback d'appui).
     this.grid.setSelection(null);
   };
