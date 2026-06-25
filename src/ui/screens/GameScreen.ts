@@ -9,7 +9,7 @@ import { HUD } from '@/ui/HUD';
 import { EduOverlay } from '@/ui/overlays/EduOverlay';
 import { EndOverlay } from '@/ui/overlays/EndOverlay';
 import { InputRouter } from '@/input/InputRouter';
-import { applySwap, createGameState, isLevelComplete, type GameState } from '@/game/GameState';
+import { applySwap, createGameState, type GameState } from '@/game/GameState';
 import { getLevelConfig } from '@/game/levels';
 import { createPrng } from '@/game/prng';
 import { isSpecialCategory, BIN_CATEGORIES, type BinCategory, type SpecialCategory } from '@/game/config-loader';
@@ -41,6 +41,8 @@ export class GameScreen {
   private prng: ReturnType<typeof createPrng>;
   private animating = false;
   private finished = false;
+  // Nombre de combos déposés par poubelle : 1 combo = 1 étage (indépendant du nombre de déchets).
+  private binCombos: Record<BinCategory, number> = { yellow: 0, black: 0, orange: 0 };
 
   constructor(
     private readonly pixi: PixiApp,
@@ -105,8 +107,13 @@ export class GameScreen {
 
   private refreshGauges(): void {
     for (const bin of BIN_CATEGORIES) {
-      this.hud.setFill(bin, this.state.bins[bin] / this.state.config.binCapacity[bin]);
+      this.hud.setEtages(bin, this.binCombos[bin]);
     }
+  }
+
+  /** Niveau terminé : chaque poubelle a reçu assez de combos pour remplir tous ses étages. */
+  private allBinsFull(): boolean {
+    return BIN_CATEGORIES.every((bin) => this.binCombos[bin] >= this.hud.binMaxEtages(bin));
   }
 
   private async handleSwap(a: Pos, b: Pos): Promise<void> {
@@ -139,6 +146,13 @@ export class GameScreen {
         }
       }
       await tl.then();
+      // Les déchets viennent d'atterrir dans la poubelle → on monte d'UN étage par combo.
+      for (const m of event.step.matches) {
+        if (isSpecialCategory(m.category)) continue;
+        const cat = m.category as BinCategory;
+        this.binCombos[cat] += 1;
+        this.hud.setEtages(cat, this.binCombos[cat]);
+      }
       await this.grid.applyDrops(event.step.drops).then();
       await this.grid.applyRefill(event.step.refill).then();
       this.maybeShowSpecial(event.specials);
@@ -149,7 +163,7 @@ export class GameScreen {
     this.animating = false;
     this.input.setEnabled(true);
 
-    if (isLevelComplete(this.state) && !this.finished) {
+    if (this.allBinsFull() && !this.finished) {
       this.finished = true;
       this.input.setEnabled(false);
       this.callbacks.onLevelComplete();

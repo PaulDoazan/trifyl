@@ -10,11 +10,39 @@ export interface HUDCallbacks {
 }
 
 // Position (coords scène, le menu démarre à gauche=0) des 3 étoiles peintes dans l'image.
-const STAR_HITBOXES: ReadonlyArray<{ level: 1 | 2 | 3; left: number }> = [
-  { level: 1, left: 126 },
-  { level: 2, left: 198 },
-  { level: 3, left: 270 },
+const STAR_HITBOXES: ReadonlyArray<{ level: 1 | 2 | 3; left: number; top: number }> = [
+  { level: 1, left: 166, top: 270 },
+  { level: 2, left: 238, top: 270 },
+  { level: 3, left: 310, top: 270 },
 ];
+
+type Box = { left: number; top: number; width: number; height: number };
+
+/**
+ * Disposition de la sidebar, en PIXELS ABSOLUS depuis son coin haut-gauche.
+ * L'écran de déploiement a toujours la même taille (sidebar 528 × 1080) :
+ * ajuste librement ces valeurs, rien d'autre n'est à toucher.
+ */
+const LAYOUT: { bins: Record<BinCategory, Box>; home: Box; quit: Box } = {
+  // Poubelles en triangle : jaune en haut au centre, noire en bas à gauche, orange en bas à droite.
+  bins: {
+    yellow: { left: 150, top: 300, width: 200, height: 250 },
+    black: { left: 60, top: 590, width: 160, height: 210 },
+    orange: { left: 270, top: 590, width: 160, height: 210 },
+  },
+  // Boutons du bas. home agrandi ; quitter à la même hauteur de pastille blanche (90px).
+  // Largeurs calées sur le ratio de chaque image (home 95×81, quitter 238×66) pour éviter toute déformation.
+  home: { left: 41, top: 950, width: 105, height: 90 },
+  quit: { left: 185, top: 965, width: 250, height: 75 },
+};
+
+function applyBox(el: HTMLElement, box: Box): void {
+  el.style.position = 'absolute';
+  el.style.left = `${box.left}px`;
+  el.style.top = `${box.top}px`;
+  el.style.width = `${box.width}px`;
+  el.style.height = `${box.height}px`;
+}
 
 export class HUD {
   readonly root: HTMLElement;
@@ -27,35 +55,35 @@ export class HUD {
 
     // Le libellé « Niveau X » et les étoiles sont déjà dessinés dans l'image de fond (grille_nivX.png).
 
-    const binsWrap = document.createElement('div');
-    binsWrap.className = 'menu__bins';
     this.gauges = {} as Record<BinCategory, BinGauge>;
     for (const bin of BIN_CATEGORIES) {
-      const g = new BinGauge(assets.getBinVideUrl(level, bin), assets.getBinPleineUrl(bin));
+      const box = LAYOUT.bins[bin];
+      const g = new BinGauge(bin, level, assets.getBinVideUrl(level, bin), assets.getBinPleineUrl(bin), box);
+      applyBox(g.root, box);
+      g.root.style.setProperty('--gh', `${box.height}px`);
       this.gauges[bin] = g;
-      binsWrap.appendChild(g.root);
+      m.appendChild(g.root);
     }
 
-    const footer = document.createElement('div');
-    footer.className = 'menu__footer';
     const homeBtn = document.createElement('button');
-    homeBtn.className = 'menu__btn menu__btn--icon';
+    homeBtn.className = 'menu__btn--icon';
     homeBtn.style.backgroundImage = `url("${homeUrl}")`;
     homeBtn.onclick = callbacks.onHome;
+    applyBox(homeBtn, LAYOUT.home);
     const quitBtn = document.createElement('button');
-    quitBtn.className = 'menu__btn menu__btn--icon';
+    quitBtn.className = 'menu__btn--icon';
     quitBtn.style.backgroundImage = `url("${quitterUrl}")`;
     quitBtn.onclick = callbacks.onQuit;
-    footer.append(homeBtn, quitBtn);
+    applyBox(quitBtn, LAYOUT.quit);
 
-    m.append(binsWrap, footer);
+    m.append(homeBtn, quitBtn);
 
     // Étoiles cliquables (debug) : sauter directement à un niveau pour tester.
     if (GAME_CONFIG.debug.levelStarNav) {
       for (const s of STAR_HITBOXES) {
         const hit = document.createElement('button');
         hit.className = 'menu__star-hit';
-        hit.style.cssText = `position:absolute;left:${s.left}px;top:40px;width:64px;height:64px;padding:0;border:none;background:transparent;cursor:pointer;`;
+        hit.style.cssText = `position:absolute;left:${s.left}px;top:${s.top}px;width:64px;height:64px;padding:0;border:none;background:transparent;cursor:pointer;`;
         hit.title = `Aller au niveau ${s.level}`;
         hit.onclick = () => callbacks.onSelectLevel(s.level);
         m.appendChild(hit);
@@ -65,8 +93,12 @@ export class HUD {
     this.root = m;
   }
 
-  setFill(bin: BinCategory, ratio: number): void {
-    this.gauges[bin].setFill(ratio);
+  setEtages(bin: BinCategory, n: number): void {
+    this.gauges[bin].setEtages(n);
+  }
+
+  binMaxEtages(bin: BinCategory): number {
+    return this.gauges[bin].maxEtages;
   }
 
   destroy(): void { this.root.remove(); }

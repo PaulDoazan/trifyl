@@ -22,7 +22,7 @@
         { "id": "canette", "asset": "dechets_niveau 1/canette", "category": "yellow" },
         { "id": "banane", "asset": "dechets_niveau 1/banane", "category": "orange" },
         { "id": "pelure_orange", "asset": "dechets_niveau 1/pelure_orange", "category": "orange" },
-        { "id": "yaourt", "asset": "dechets_niveau 1/yaourt", "category": "black" },
+        { "id": "yaourt", "asset": "dechets_niveau 1/yaourt", "category": "yellow" },
         { "id": "couche", "asset": "dechets_niveau 1/couche", "category": "black" }
       ]
     },
@@ -43,7 +43,7 @@
         { "id": "journal", "asset": "dechets_niveau 2/journal", "category": "yellow" },
         { "id": "banane", "asset": "dechets_niveau 2/banane", "category": "orange" },
         { "id": "carotte", "asset": "dechets_niveau 2/carotte", "category": "orange" },
-        { "id": "yaourt", "asset": "dechets_niveau 2/yaourt", "category": "black" },
+        { "id": "yaourt", "asset": "dechets_niveau 2/yaourt", "category": "yellow" },
         { "id": "mouchoir", "asset": "dechets_niveau 2/mouchoir", "category": "black" },
         { "id": "pile", "asset": "dechets_niveau 2/pile", "category": "piles" },
         { "id": "verre_brise", "asset": "dechets_niveau 2/verre_brise", "category": "verre" }
@@ -68,7 +68,7 @@
         { "id": "banane", "asset": "dechets_niveau 3/banane", "category": "orange" },
         { "id": "carotte", "asset": "dechets_niveau 3/carotte", "category": "orange" },
         { "id": "poisson", "asset": "dechets_niveau 3/poisson", "category": "orange" },
-        { "id": "yaourt", "asset": "dechets_niveau 3/yaourt", "category": "black" },
+        { "id": "yaourt", "asset": "dechets_niveau 3/yaourt", "category": "yellow" },
         { "id": "mouchoir", "asset": "dechets_niveau 3/mouchoir", "category": "black" },
         { "id": "masque", "asset": "dechets_niveau 3/masque", "category": "black" },
         { "id": "pile", "asset": "dechets_niveau 3/pile", "category": "piles" },

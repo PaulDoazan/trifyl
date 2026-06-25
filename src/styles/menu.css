@@ -6,36 +6,31 @@
   height: var(--stage-h);
   color: var(--color-menu-text);
   z-index: 2;
-  display: flex;
-  flex-direction: column;
-  /* Le panneau, les étoiles et « Niveau X » sont dans l'image de fond ;
-     on dégage le haut pour placer les jauges sous le libellé peint. */
-  padding: 230px 40px 56px;
-  gap: 24px;
   pointer-events: auto;
+  /* Poubelles et boutons sont positionnés en pixels absolus depuis le coin
+     haut-gauche de la sidebar : voir l'objet LAYOUT dans HUD.ts. */
 }
-.menu__bins { display: flex; flex-direction: column; gap: 16px; align-items: center; }
-.bin-gauge { position: relative; width: 140px; height: 180px; }
+/* Jauge poubelle : taille et position pilotées en px (inline) depuis HUD.ts.
+   --gh = hauteur de la jauge, pour ancrer l'image « pleine » au bas du cadre. */
+.bin-gauge { position: absolute; }
+/* Taille et position des images sont calculées en px (inline) par BinGauge.ts pour
+   superposer pixel-près « vide » et « pleine ». */
 .bin-gauge__vide,
-.bin-gauge__pleine { position: absolute; left: 0; bottom: 0; width: 140px; height: 180px; background: center / contain no-repeat; }
+.bin-gauge__pleine { position: absolute; left: 0; bottom: 0; width: 100%; background-repeat: no-repeat; }
+.bin-gauge__vide { height: 100%; }
+.bin-gauge__pleine { height: var(--gh, 100%); }
 .bin-gauge__fill {
   position: absolute; left: 0; right: 0; bottom: 0;
   height: 0;
   overflow: hidden;
   transition: height 400ms ease-out;
 }
-.menu__footer { display: flex; gap: 16px; margin-top: auto; }
-.menu__btn {
-  flex: 1;
-  padding: 16px;
-  font-size: 18px;
-  font-weight: 600;
-  background: rgba(255,255,255,0.16);
-  color: var(--color-menu-text);
-  border-radius: var(--radius-md);
-  transition: background 0.2s;
-}
+/* Boutons home / quitter : position et taille en px (inline) depuis HUD.ts. */
 .menu__btn--icon {
-  width: 120px; height: 60px; border: none; background: center / contain no-repeat;
-  background-color: transparent; cursor: pointer;
+  position: absolute;
+  padding: 0;
+  border: none;
+  background: center / contain no-repeat;
+  background-color: transparent;
+  cursor: pointer;
 }
