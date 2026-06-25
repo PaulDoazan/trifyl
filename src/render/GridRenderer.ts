@@ -20,6 +20,11 @@ export class GridRenderer {
   private readonly highlight: Graphics;
   private tiles: (TileSprite | null)[][];
   layout: GridLayout;
+  private dragTile: TileSprite | null = null;
+  private dragHome = { x: 0, y: 0 };
+  private dragNeighborCell: Pos | null = null;
+  private dragNeighborTile: TileSprite | null = null;
+  private dragNeighborHome = { x: 0, y: 0 };
 
   constructor(
     private readonly level: LevelConfig,
@@ -124,6 +129,80 @@ export class GridRenderer {
       tile.row = row;
       tile.col = col;
     }
+  }
+
+  /** Mémorise le déchet tiré et sa position d'origine (début d'un geste de drag). */
+  beginDrag(cell: Pos): void {
+    this.dragTile = this.getTile(cell.row, cell.col);
+    this.dragHome = this.cellToPixel(cell.row, cell.col);
+    this.dragNeighborCell = null;
+    this.dragNeighborTile = null;
+  }
+
+  /**
+   * Suit le doigt : décale le déchet tiré de +offset et le voisin de -offset sur l'axe.
+   * `offset` est signé et déjà clampé à ±tile par l'appelant. Si le voisin change
+   * (le doigt repasse de l'autre côté), l'ancien voisin est remis à sa place.
+   */
+  updateDrag(axis: 'x' | 'y', neighbor: Pos | null, offset: number): void {
+    if (!this.dragTile) return;
+
+    const changed =
+      (neighbor?.row ?? -1) !== (this.dragNeighborCell?.row ?? -1) ||
+      (neighbor?.col ?? -1) !== (this.dragNeighborCell?.col ?? -1);
+    if (changed) {
+      if (this.dragNeighborTile) {
+        this.dragNeighborTile.x = this.dragNeighborHome.x;
+        this.dragNeighborTile.y = this.dragNeighborHome.y;
+      }
+      this.dragNeighborCell = neighbor;
+      this.dragNeighborTile = neighbor ? this.getTile(neighbor.row, neighbor.col) : null;
+      if (neighbor) this.dragNeighborHome = this.cellToPixel(neighbor.row, neighbor.col);
+    }
+
+    if (axis === 'x') {
+      this.dragTile.x = this.dragHome.x + offset;
+      this.dragTile.y = this.dragHome.y;
+      if (this.dragNeighborTile) {
+        this.dragNeighborTile.x = this.dragNeighborHome.x - offset;
+        this.dragNeighborTile.y = this.dragNeighborHome.y;
+      }
+    } else {
+      this.dragTile.y = this.dragHome.y + offset;
+      this.dragTile.x = this.dragHome.x;
+      if (this.dragNeighborTile) {
+        this.dragNeighborTile.y = this.dragNeighborHome.y - offset;
+        this.dragNeighborTile.x = this.dragNeighborHome.x;
+      }
+    }
+  }
+
+  /** Ramène le déchet tiré et le voisin à leur place (relâchement sans validation). */
+  cancelDrag(): gsap.core.Timeline {
+    const tl = gsap.timeline();
+    if (this.dragTile) {
+      tl.to(this.dragTile, { x: this.dragHome.x, y: this.dragHome.y, ...ANIM.swapValid }, 0);
+    }
+    if (this.dragNeighborTile) {
+      tl.to(
+        this.dragNeighborTile,
+        { x: this.dragNeighborHome.x, y: this.dragNeighborHome.y, ...ANIM.swapValid },
+        0,
+      );
+    }
+    this.clearDrag();
+    return tl;
+  }
+
+  /** Libère l'état de drag sans bouger les sprites (chemin de validation). */
+  endDrag(): void {
+    this.clearDrag();
+  }
+
+  private clearDrag(): void {
+    this.dragTile = null;
+    this.dragNeighborCell = null;
+    this.dragNeighborTile = null;
   }
 
   swapVisual(a: Pos, b: Pos): gsap.core.Timeline {
