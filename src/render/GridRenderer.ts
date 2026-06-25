@@ -134,6 +134,7 @@ export class GridRenderer {
   /** Mémorise le déchet tiré et sa position d'origine (début d'un geste de drag). */
   beginDrag(cell: Pos): void {
     this.dragTile = this.getTile(cell.row, cell.col);
+    if (this.dragTile) gsap.killTweensOf(this.dragTile);
     this.dragHome = this.cellToPixel(cell.row, cell.col);
     this.dragNeighborCell = null;
     this.dragNeighborTile = null;
@@ -157,6 +158,7 @@ export class GridRenderer {
       }
       this.dragNeighborCell = neighbor;
       this.dragNeighborTile = neighbor ? this.getTile(neighbor.row, neighbor.col) : null;
+      if (this.dragNeighborTile) gsap.killTweensOf(this.dragNeighborTile);
       if (neighbor) this.dragNeighborHome = this.cellToPixel(neighbor.row, neighbor.col);
     }
 

@@ -80,13 +80,10 @@ export class InputRouter {
     if (!this.enabled) return;
     const cell = this.grid.pixelToCell(e.global.x, e.global.y);
     if (!cell) return;
+    this.endGesture();
     this.downCell = cell;
     this.downX = e.global.x;
     this.downY = e.global.y;
-    this.dragging = false;
-    this.dragAxis = null;
-    this.dragOffset = 0;
-    this.dragNeighbor = null;
     this.grid.beginDrag(cell);
     this.grid.setSelection(cell); // feedback immédiat sur la case pressée
   };
