@@ -1,10 +1,16 @@
 import type { Cell, Grid, Pos } from './grid';
 import { areAdjacent, cloneGrid, getCell, swapCells } from './grid';
-import type { WasteType } from './waste';
+import type { WasteCategory } from './waste';
+import { WASTE_META } from './waste-data';
 
 export interface MatchGroup {
-  type: WasteType;
+  category: WasteCategory;
   cells: Pos[];
+}
+
+/** Famille (couleur/catégorie) d'une case ; null si vide. Le matching se fait par famille. */
+function catOf(cell: Cell): WasteCategory | null {
+  return cell === null ? null : (WASTE_META[cell]?.category ?? null);
 }
 
 export function findMatches(grid: Grid): MatchGroup[] {
@@ -17,8 +23,8 @@ export function findMatches(grid: Grid): MatchGroup[] {
   for (let r = 0; r < rows; r++) {
     let runStart = 0;
     for (let c = 1; c <= cols; c++) {
-      const prev = getCell(grid, r, c - 1);
-      const cur = c < cols ? getCell(grid, r, c) : null;
+      const prev = catOf(getCell(grid, r, c - 1));
+      const cur = c < cols ? catOf(getCell(grid, r, c)) : null;
       const breakRun = prev === null || cur !== prev;
       if (breakRun) {
         const len = c - runStart;
@@ -33,8 +39,8 @@ export function findMatches(grid: Grid): MatchGroup[] {
   for (let c = 0; c < cols; c++) {
     let runStart = 0;
     for (let r = 1; r <= rows; r++) {
-      const prev = getCell(grid, r - 1, c);
-      const cur = r < rows ? getCell(grid, r, c) : null;
+      const prev = catOf(getCell(grid, r - 1, c));
+      const cur = r < rows ? catOf(getCell(grid, r, c)) : null;
       const breakRun = prev === null || cur !== prev;
       if (breakRun) {
         const len = r - runStart;
@@ -52,13 +58,13 @@ export function findMatches(grid: Grid): MatchGroup[] {
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       if (!flagged[r]![c] || visited[r]![c]) continue;
-      const type = getCell(grid, r, c) as WasteType;
+      const category = catOf(getCell(grid, r, c))!;
       const cells: Pos[] = [];
       const stack: Pos[] = [{ row: r, col: c }];
       while (stack.length) {
         const p = stack.pop()!;
         if (!flagged[p.row]?.[p.col] || visited[p.row]![p.col]) continue;
-        if (getCell(grid, p.row, p.col) !== type) continue;
+        if (catOf(getCell(grid, p.row, p.col)) !== category) continue;
         visited[p.row]![p.col] = true;
         cells.push(p);
         stack.push({ row: p.row + 1, col: p.col });
@@ -66,7 +72,7 @@ export function findMatches(grid: Grid): MatchGroup[] {
         stack.push({ row: p.row, col: p.col + 1 });
         stack.push({ row: p.row, col: p.col - 1 });
       }
-      groups.push({ type, cells });
+      groups.push({ category, cells });
     }
   }
 
@@ -77,7 +83,10 @@ export function isValidSwap(grid: Grid, a: Pos, b: Pos): boolean {
   if (!areAdjacent(a, b)) return false;
   const va = getCell(grid, a.row, a.col);
   const vb = getCell(grid, b.row, b.col);
-  if (va === null || vb === null || va === vb) return false;
+  if (va === null || vb === null) return false;
+  // Même famille : échanger ne change aucune catégorie sur la grille, donc aucun combo possible.
+  // (Deux obstacles ont tous deux une catégorie `null` → également rejetés ici.)
+  if (catOf(va) === catOf(vb)) return false;
   const trial = cloneGrid(grid);
   swapCells(trial, a, b);
   return findMatches(trial).length > 0;

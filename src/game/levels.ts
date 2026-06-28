@@ -1,44 +1,36 @@
+import { GAME_CONFIG, type BinCategory } from './config-loader';
 import type { WasteType } from './waste';
 
 export interface LevelConfig {
   level: 1 | 2 | 3;
-  size: 5 | 10 | 15;
+  size: number;
   wasteTypes: readonly WasteType[];
-  trapTypes: readonly WasteType[];
+  binCapacity: Record<BinCategory, number>;
+  gridAsset: string;
+  binVideAsset: Record<BinCategory, string>;
+  obstacleRate: number;
+  obstacleInitial: number;
+  obstacleMin: number;
 }
 
-export const LEVEL_1: LevelConfig = {
-  level: 1, size: 5,
-  wasteTypes: ['plastic_bottle', 'apple', 'tissue', 'battery'],
-  trapTypes: ['battery'],
-};
-
-export const LEVEL_2: LevelConfig = {
-  level: 2, size: 10,
-  wasteTypes: [
-    'plastic_bottle', 'can', 'cardboard',
-    'apple', 'coffee_grounds',
-    'tissue', 'dirty_yogurt_pot',
-    'battery',
-  ],
-  trapTypes: ['battery'],
-};
-
-export const LEVEL_3: LevelConfig = {
-  level: 3, size: 15,
-  wasteTypes: [
-    'plastic_bottle', 'can', 'cardboard', 'milk_carton',
-    'apple', 'coffee_grounds', 'egg_shell',
-    'tissue', 'dirty_yogurt_pot', 'broken_toy',
-    'battery', 'lightbulb', 'medication',
-  ],
-  trapTypes: ['battery', 'lightbulb', 'medication'],
-};
+const LEVELS: Record<1 | 2 | 3, LevelConfig> = (() => {
+  const out = {} as Record<1 | 2 | 3, LevelConfig>;
+  for (const lvl of GAME_CONFIG.levels) {
+    out[lvl.level] = {
+      level: lvl.level,
+      size: lvl.size,
+      wasteTypes: lvl.wastes.map((w) => w.id),
+      binCapacity: lvl.binCapacity,
+      gridAsset: lvl.gridAsset,
+      binVideAsset: lvl.binVideAsset,
+      obstacleRate: lvl.obstacleRate ?? 0,
+      obstacleInitial: lvl.obstacleInitial ?? 0,
+      obstacleMin: lvl.obstacleMin ?? 0,
+    };
+  }
+  return out;
+})();
 
 export function getLevelConfig(level: 1 | 2 | 3): LevelConfig {
-  switch (level) {
-    case 1: return LEVEL_1;
-    case 2: return LEVEL_2;
-    case 3: return LEVEL_3;
-  }
+  return LEVELS[level];
 }

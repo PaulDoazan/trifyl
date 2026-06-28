@@ -2,11 +2,10 @@ import type { Grid, Pos } from './grid';
 import { cloneGrid, swapCells } from './grid';
 import { findMatches, findValidMoves, isValidSwap } from './matching';
 import { applyCascade, type CascadeStep } from './cascade';
-import { computeMatchScore } from './score';
 import { createInitialGrid } from './initial-grid';
 import type { LevelConfig } from './levels';
 import type { Prng } from './prng';
-import { WASTE_META } from './waste-data';
+import { BIN_CATEGORIES, isSpecialCategory, type BinCategory, type SpecialCategory } from './config-loader';
 
 export interface GameState {
   level: 1 | 2 | 3;
@@ -14,7 +13,7 @@ export interface GameState {
   grid: Grid;
   rows: number;
   cols: number;
-  score: number;
+  bins: Record<BinCategory, number>;
   isAnimating: boolean;
   isOver: boolean;
 }
@@ -27,20 +26,24 @@ export function createGameState(config: LevelConfig, prng: Prng): GameState {
     grid,
     rows: config.size,
     cols: config.size,
-    score: 0,
+    bins: { yellow: 0, black: 0, orange: 0 },
     isAnimating: false,
     isOver: false,
   };
 }
 
+export function isLevelComplete(state: GameState): boolean {
+  return BIN_CATEGORIES.every((b) => state.bins[b] >= state.config.binCapacity[b]);
+}
+
 export type SwapResult =
   | { kind: 'invalid'; a: Pos; b: Pos }
-  | { kind: 'resolved'; a: Pos; b: Pos; events: ResolvedEvent[]; scoreDelta: number; next: GameState };
+  | { kind: 'resolved'; a: Pos; b: Pos; events: ResolvedEvent[]; next: GameState };
 
 export interface ResolvedEvent {
   step: CascadeStep;
-  scoreForStep: number;
-  trapEducation: { type: import('./waste').WasteType; text: string }[];
+  /** Catégories spéciales rencontrées dans ce step (piles/textile/verre). */
+  specials: SpecialCategory[];
 }
 
 export function applySwap(state: GameState, a: Pos, b: Pos, prng: Prng): SwapResult {
@@ -52,21 +55,21 @@ export function applySwap(state: GameState, a: Pos, b: Pos, prng: Prng): SwapRes
 
   const cascade = applyCascade(nextGrid, state.config, prng);
 
-  let scoreDelta = 0;
+  const nextBins: Record<BinCategory, number> = { ...state.bins };
   const events: ResolvedEvent[] = [];
+
   for (const step of cascade.events) {
-    let scoreForStep = 0;
-    const trapEducation: ResolvedEvent['trapEducation'] = [];
+    const specials: SpecialCategory[] = [];
     for (const m of step.matches) {
-      const meta = WASTE_META[m.type];
-      const hasTrap = meta.bin === 'hazardous';
-      scoreForStep += computeMatchScore({ size: m.cells.length, hasTrap, cascadeIndex: step.cascadeIndex });
-      if (hasTrap && meta.educationalText) {
-        trapEducation.push({ type: m.type, text: meta.educationalText });
+      const cat = m.category;
+      if (isSpecialCategory(cat)) {
+        if (!specials.includes(cat)) specials.push(cat);
+      } else {
+        const cap = state.config.binCapacity[cat as BinCategory];
+        nextBins[cat as BinCategory] = Math.min(cap, nextBins[cat as BinCategory] + m.cells.length);
       }
     }
-    events.push({ step, scoreForStep, trapEducation });
-    scoreDelta += scoreForStep;
+    events.push({ step, specials });
   }
 
   const isOver = findMatches(nextGrid).length === 0 && findValidMoves(nextGrid).length === 0;
@@ -74,10 +77,10 @@ export function applySwap(state: GameState, a: Pos, b: Pos, prng: Prng): SwapRes
   const next: GameState = {
     ...state,
     grid: nextGrid,
-    score: state.score + scoreDelta,
+    bins: nextBins,
     isAnimating: false,
     isOver,
   };
 
-  return { kind: 'resolved', a, b, events, scoreDelta, next };
+  return { kind: 'resolved', a, b, events, next };
 }

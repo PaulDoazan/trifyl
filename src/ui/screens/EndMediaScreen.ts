@@ -12,7 +12,7 @@ export class EndMediaScreen {
     el.innerHTML = `
       <div class="endmedia__media">Vidéo de sensibilisation</div>
       <div class="endmedia__buttons">
-        <button class="endmedia__btn endmedia__btn--home" data-home>Home</button>
+        <button class="endmedia__btn endmedia__btn--home" data-home>Accueil</button>
         <button class="endmedia__btn" data-replay>Rejouer</button>
       </div>
     `;

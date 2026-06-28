@@ -3,12 +3,15 @@ import { applyGravity, refillTop, applyCascade } from '@/game/cascade';
 import type { Grid } from '@/game/grid';
 import type { WasteType } from '@/game/waste';
 import { createPrng } from '@/game/prng';
-import { LEVEL_1 } from '@/game/levels';
+import { getLevelConfig } from '@/game/levels';
+import { isObstacle } from '@/game/obstacle';
 
-const A: WasteType = 'apple';
-const B: WasteType = 'tissue';
-const C: WasteType = 'plastic_bottle';
-const D: WasteType = 'battery';
+const LEVEL_1 = getLevelConfig(1);
+
+const A: WasteType = 'eau';
+const B: WasteType = 'canette';
+const C: WasteType = 'banane';
+const D: WasteType = 'yaourt';
 
 const g = (rows: (WasteType | null)[][]): Grid => rows.map((r) => r.slice());
 
@@ -44,7 +47,7 @@ describe('refillTop', () => {
     const additions = refillTop(board, LEVEL_1, createPrng(1));
     for (const row of board) for (const c of row) expect(c).not.toBeNull();
     const allowed = new Set(LEVEL_1.wasteTypes);
-    for (const row of board) for (const c of row) expect(allowed.has(c!)).toBe(true);
+    for (const row of board) for (const c of row) expect(allowed.has(c!) || isObstacle(c)).toBe(true);
     expect(additions.length).toBe(4);
   });
 });

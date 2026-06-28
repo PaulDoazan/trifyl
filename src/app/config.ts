@@ -1,9 +1,9 @@
 export const STAGE_WIDTH = 1920;
 export const STAGE_HEIGHT = 1080;
 export const MENU_WIDTH = 528;
-export const PLAY_AREA_X = MENU_WIDTH;
-export const PLAY_AREA_WIDTH = STAGE_WIDTH - MENU_WIDTH;
-export const PLAY_AREA_HEIGHT = STAGE_HEIGHT;
-export const GRID_PADDING = 80;
-export const IDLE_MS = 60_000;
-export const EDU_OVERLAY_MS = 4500;
+
+// Zone des CASES peintes dans les images grille_nivX.png (centres des cellules),
+// mesurée sur les assets — pas la bordure pointillée extérieure, qui inclut un padding.
+// Identique pour les 3 niveaux (même cadre, subdivisé en 5/8/10). La grille se cale dessus :
+// tileW = width/n, tileH = height/n, centre d'une case = origin + (i + 0.5) * tile.
+export const GRID_RECT = { x: 714, y: 70, width: 952, height: 944 } as const;
