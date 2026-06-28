@@ -8,6 +8,9 @@ export interface LevelConfig {
   binCapacity: Record<BinCategory, number>;
   gridAsset: string;
   binVideAsset: Record<BinCategory, string>;
+  obstacleRate: number;
+  obstacleInitial: number;
+  obstacleMin: number;
 }
 
 const LEVELS: Record<1 | 2 | 3, LevelConfig> = (() => {
@@ -20,6 +23,9 @@ const LEVELS: Record<1 | 2 | 3, LevelConfig> = (() => {
       binCapacity: lvl.binCapacity,
       gridAsset: lvl.gridAsset,
       binVideAsset: lvl.binVideAsset,
+      obstacleRate: lvl.obstacleRate ?? 0,
+      obstacleInitial: lvl.obstacleInitial ?? 0,
+      obstacleMin: lvl.obstacleMin ?? 0,
     };
   }
   return out;

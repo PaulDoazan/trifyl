@@ -85,6 +85,7 @@ export function isValidSwap(grid: Grid, a: Pos, b: Pos): boolean {
   const vb = getCell(grid, b.row, b.col);
   if (va === null || vb === null) return false;
   // Même famille : échanger ne change aucune catégorie sur la grille, donc aucun combo possible.
+  // (Deux obstacles ont tous deux une catégorie `null` → également rejetés ici.)
   if (catOf(va) === catOf(vb)) return false;
   const trial = cloneGrid(grid);
   swapCells(trial, a, b);

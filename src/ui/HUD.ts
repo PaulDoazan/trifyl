@@ -10,10 +10,11 @@ export interface HUDCallbacks {
 }
 
 // Position (coords scène, le menu démarre à gauche=0) des 3 étoiles peintes dans l'image.
+// Position (coords scène, le menu démarre à gauche=0) des 3 étoiles peintes en haut de la sidebar.
 const STAR_HITBOXES: ReadonlyArray<{ level: 1 | 2 | 3; left: number; top: number }> = [
-  { level: 1, left: 166, top: 270 },
-  { level: 2, left: 238, top: 270 },
-  { level: 3, left: 310, top: 270 },
+  { level: 1, left: 126, top: 40 },
+  { level: 2, left: 198, top: 40 },
+  { level: 3, left: 270, top: 40 },
 ];
 
 type Box = { left: number; top: number; width: number; height: number };

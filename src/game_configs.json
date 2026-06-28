@@ -12,6 +12,9 @@
       "size": 5,
       "gridAsset": "grille/grille_niv1",
       "binCapacity": { "yellow": 9, "black": 9, "orange": 9 },
+      "obstacleRate": 0,
+      "obstacleInitial": 4,
+      "obstacleMin": 4,
       "binVideAsset": {
         "yellow": "poubelles/niv1_poub_jaune_vide",
         "black": "poubelles/niv1_poub_noire_vide",

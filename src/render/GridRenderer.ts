@@ -245,9 +245,34 @@ export class GridRenderer {
       if (t) {
         out.push(t);
         this.setTile(p.row, p.col, null);
+        // La tuile va s'animer (vol vers la poubelle / vortex) : on la passe au-dessus
+        // de toutes les autres pour qu'elle ne disparaisse pas sous la grille pendant la transition.
+        this.container.setChildIndex(t, this.container.children.length - 1);
       }
     }
     return out;
+  }
+
+  /** Éjecte les obstacles par le bas : ils glissent sous la grille puis sont détruits. */
+  ejectTilesAt(positions: Pos[]): gsap.core.Timeline {
+    const tl = gsap.timeline();
+    const { originY, tileH } = this.layout;
+    const exitY = originY + (this.level.size + 1) * tileH;
+    for (const p of positions) {
+      const t = this.getTile(p.row, p.col);
+      if (!t) continue;
+      this.setTile(p.row, p.col, null);
+      this.container.setChildIndex(t, this.container.children.length - 1);
+      gsap.killTweensOf(t);
+      tl.to(t, {
+        y: exitY,
+        alpha: 0,
+        duration: ANIM.refill.duration,
+        ease: 'power1.in',
+        onComplete: () => { if (!t.destroyed) t.destroy(); },
+      }, 0);
+    }
+    return tl;
   }
 
   applyDrops(drops: { from: Pos; to: Pos }[]): gsap.core.Timeline {

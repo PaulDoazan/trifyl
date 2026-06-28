@@ -38,14 +38,15 @@ L'obstacle est une valeur de cellule distincte (non `null`, donc soumise à la g
 
 Ajout dans `game_configs.json`, `config-loader.ts` et `LevelConfig` :
 
-- `obstacleRate: number` — probabilité (0..1) qu'une case rechargée soit un obstacle. Niveau 1 : `0.12`. Niveaux 2/3 : `0` (inchangés pour l'instant).
+- `obstacleRate: number` — probabilité (0..1) qu'une case rechargée soit un obstacle (injection « bonus » au-delà du plancher). Niveau 1 : `0`. Niveaux 2/3 : `0`.
 - `obstacleInitial: number` — nombre d'obstacles présents au démarrage (placés hors dernière ligne). Niveau 1 : `4`. Niveaux 2/3 : `0`.
+- `obstacleMin: number` — **plancher** d'obstacles maintenu à l'écran : à chaque refill, on réinjecte par le haut de quoi remonter à ce seuil. Niveau 1 : `4`. Niveaux 2/3 : `0`.
 
-Ces champs sont optionnels et valent `0` par défaut, donc les niveaux 2 et 3 ne changent pas.
+Ces champs sont optionnels et valent `0` par défaut, donc les niveaux 2 et 3 ne changent pas. Comme un obstacle sort dès qu'il atteint le bas, le plancher fait que dès qu'un obstacle quitte la grille, un nouveau réapparaît en haut : un flux permanent d'au moins `obstacleMin` obstacles, même avec `obstacleRate` à 0. La grille initiale est ensemencée à `max(obstacleInitial, obstacleMin)`.
 
 ### 3. Matching (`matching.ts`)
 
-- `isValidSwap` : retourne `false` si **l'une des deux cases est un obstacle** (non échangeable). Le reste inchangé.
+- **L'obstacle est échangeable** comme une tuile normale : un swap déchet↔obstacle est validé s'il **crée un combo** (le déchet déplacé aligne une famille), sinon annulé comme tout swap stérile. Seul l'échange de deux obstacles est rejeté (catégories `null` égales → aucun combo possible). `isValidSwap` reste donc inchangé hors ce point.
 - (matching/flood-fill inchangé : l'obstacle est déjà neutre via `catOf`.)
 
 ### 4. Cascade (`cascade.ts`)
