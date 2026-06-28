@@ -8,8 +8,10 @@ import { trapVortex } from '@/render/TrapEffect';
 import { HUD } from '@/ui/HUD';
 import { EduOverlay } from '@/ui/overlays/EduOverlay';
 import { EndOverlay } from '@/ui/overlays/EndOverlay';
+import { Toast } from '@/ui/overlays/Toast';
 import { InputRouter } from '@/input/InputRouter';
 import { applySwap, createGameState, type GameState } from '@/game/GameState';
+import { reshuffleGrid } from '@/game/reshuffle';
 import { getLevelConfig } from '@/game/levels';
 import { createPrng } from '@/game/prng';
 import { isSpecialCategory, BIN_CATEGORIES, type BinCategory, type SpecialCategory } from '@/game/config-loader';
@@ -37,6 +39,7 @@ export class GameScreen {
   private hud: HUD;
   private edu: EduOverlay;
   private end: EndOverlay;
+  private toast: Toast;
   private input: InputRouter;
   private prng: ReturnType<typeof createPrng>;
   private animating = false;
@@ -72,6 +75,7 @@ export class GameScreen {
     });
     this.edu = new EduOverlay();
     this.end = new EndOverlay(assets.getPopupUrl('combinaison'), () => callbacks.onQuit());
+    this.toast = new Toast();
 
     const el = document.createElement('section');
     el.className = 'screen screen--game';
@@ -84,6 +88,7 @@ export class GameScreen {
     playArea.style.cssText = `position:absolute;left:${MENU_WIDTH}px;top:0;width:${1920 - MENU_WIDTH}px;height:${STAGE_HEIGHT}px;pointer-events:none;`;
     playArea.appendChild(this.edu.root);
     playArea.appendChild(this.end.root);
+    playArea.appendChild(this.toast.root);
     el.appendChild(playArea);
     this.root = el;
 
@@ -145,6 +150,8 @@ export class GameScreen {
           for (const s of sprites) tl.add(flyTileToBin(s, target), 0);
         }
       }
+      // Obstacles arrivés en dernière ligne : ils tombent hors de la grille.
+      tl.add(this.grid.ejectTilesAt(event.step.ejected), 0);
       await tl.then();
       // Les déchets viennent d'atterrir dans la poubelle → on monte d'UN étage par combo.
       for (const m of event.step.matches) {
@@ -153,6 +160,13 @@ export class GameScreen {
         this.binCombos[cat] += 1;
         this.hud.setEtages(cat, this.binCombos[cat]);
       }
+      // Victoire dès que les poubelles sont pleines, sans attendre la fin des cascades.
+      if (this.allBinsFull() && !this.finished) {
+        this.finished = true;
+        this.input.setEnabled(false);
+        this.callbacks.onLevelComplete();
+        return;
+      }
       await this.grid.applyDrops(event.step.drops).then();
       await this.grid.applyRefill(event.step.refill).then();
       this.maybeShowSpecial(event.specials);
@@ -160,17 +174,23 @@ export class GameScreen {
 
     this.state = result.next;
     this.refreshGauges();
+
+    // Plus aucun coup possible : on redistribue la grille (pas de défaite).
+    if (this.state.isOver) {
+      await this.reshuffleBoard();
+    }
+
     this.animating = false;
     this.input.setEnabled(true);
+  }
 
-    if (this.allBinsFull() && !this.finished) {
-      this.finished = true;
-      this.input.setEnabled(false);
-      this.callbacks.onLevelComplete();
-    } else if (this.state.isOver && !this.finished) {
-      this.finished = true;
-      this.end.show();
-    }
+  /** Rebat la grille en conservant la progression, avec un message, quand le joueur est bloqué. */
+  private async reshuffleBoard(): Promise<void> {
+    this.toast.show('On redistribue la grille !');
+    const newGrid = reshuffleGrid(this.state.grid, this.state.config, this.prng);
+    this.state = { ...this.state, grid: newGrid, isOver: false };
+    await new Promise((resolve) => window.setTimeout(resolve, 600));
+    this.grid.populate(newGrid);
   }
 
   destroy(): void {

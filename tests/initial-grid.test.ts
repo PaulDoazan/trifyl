@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { createInitialGrid } from '@/game/initial-grid';
 import { findMatches, findValidMoves } from '@/game/matching';
 import { getLevelConfig } from '@/game/levels';
+import { isObstacle } from '@/game/obstacle';
 
 const LEVEL_1 = getLevelConfig(1);
 const LEVEL_2 = getLevelConfig(2);
@@ -20,12 +21,12 @@ describe('createInitialGrid', () => {
       }
     });
 
-    it(`level ${lvl.level}: only uses configured wasteTypes`, () => {
+    it(`level ${lvl.level}: only uses configured wasteTypes (ou des obstacles)`, () => {
       const grid = createInitialGrid(lvl, createPrng(42));
       const allowed = new Set(lvl.wasteTypes);
       for (const row of grid) for (const c of row) {
         expect(c).not.toBeNull();
-        expect(allowed.has(c!)).toBe(true);
+        expect(allowed.has(c!) || isObstacle(c)).toBe(true);
       }
     });
   }

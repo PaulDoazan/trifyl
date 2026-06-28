@@ -1,8 +1,36 @@
-import { Assets, type Texture } from 'pixi.js';
+import { Assets, Texture } from 'pixi.js';
 import type { AssetProvider, ScreenImageKey, ButtonKey, PopupKey } from './AssetProvider';
 import type { BinCategory } from '@/game/config-loader';
 import type { WasteType } from '@/game/waste';
 import { WASTE_META, ALL_WASTE_TYPES } from '@/game/waste-data';
+import { OBSTACLE_TYPE } from '@/game/obstacle';
+
+/** Texture placeholder de l'obstacle, dessinée par code (bloc neutre + symbole « interdit »). */
+function makeObstacleTexture(): Texture {
+  const size = 128;
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext('2d')!;
+  ctx.fillStyle = '#39424d';
+  ctx.strokeStyle = '#5b6675';
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  ctx.roundRect(8, 8, size - 16, size - 16, 22);
+  ctx.fill();
+  ctx.stroke();
+  const cx = size / 2, cy = size / 2, rad = 32;
+  ctx.strokeStyle = '#e2574c';
+  ctx.lineWidth = 11;
+  ctx.beginPath();
+  ctx.arc(cx, cy, rad, 0, Math.PI * 2);
+  ctx.stroke();
+  const d = rad * Math.SQRT1_2;
+  ctx.beginPath();
+  ctx.moveTo(cx - d, cy - d);
+  ctx.lineTo(cx + d, cy + d);
+  ctx.stroke();
+  return Texture.from(canvas);
+}
 
 // URL de chaque PNG sous src/assets/files (résolu par Vite au build).
 const FILES = import.meta.glob('./files/**/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
@@ -24,6 +52,7 @@ export class FileAssetProvider implements AssetProvider {
     for (const t of ALL_WASTE_TYPES) {
       this.tiles.set(t, await Assets.load(url(WASTE_META[t]!.asset)));
     }
+    this.tiles.set(OBSTACLE_TYPE, makeObstacleTexture());
     for (const lvl of [1, 2, 3] as const) {
       this.grids.set(lvl, await Assets.load(url(`grille/grille_niv${lvl}`)));
     }
