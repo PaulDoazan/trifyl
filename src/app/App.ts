@@ -7,7 +7,7 @@ import { EndMediaScreen } from '@/ui/screens/EndMediaScreen';
 import { GameScreen } from '@/ui/screens/GameScreen';
 import { LevelCompleteOverlay } from '@/ui/overlays/LevelCompleteOverlay';
 import { IdleTracker } from '@/input/IdleTracker';
-import { GAME_CONFIG } from '@/game/config-loader';
+import { GAME_CONFIG, type SpecialCategory } from '@/game/config-loader';
 
 export class App {
   private pixi!: PixiApp;
@@ -16,7 +16,8 @@ export class App {
   private idle!: IdleTracker;
   private currentGame: GameScreen | null = null;
   private currentLevel: 1 | 2 | 3 = 1;
-  private pilesShownRef = { value: false };
+  // Messages éducatifs déjà affichés durant la partie (une seule apparition par catégorie, tous niveaux confondus).
+  private shownSpecialsRef = { value: new Set<SpecialCategory>() };
   private levelComplete!: LevelCompleteOverlay;
 
   constructor(private readonly host: HTMLElement) {}
@@ -69,7 +70,7 @@ export class App {
   }
 
   private startNewGame(): void {
-    this.pilesShownRef = { value: false };
+    this.shownSpecialsRef = { value: new Set<SpecialCategory>() };
     this.currentLevel = 1;
     this.startLevel(1);
   }
@@ -90,7 +91,7 @@ export class App {
 
   private startLevel(level: 1 | 2 | 3): void {
     this.disposeCurrentGame();
-    const game = new GameScreen(this.pixi, this.assets, level, this.pilesShownRef, {
+    const game = new GameScreen(this.pixi, this.assets, level, this.shownSpecialsRef, {
       onHome: () => this.goHome(),
       onQuit: () => this.goMedia(),
       onLevelComplete: () => this.onLevelComplete(level),

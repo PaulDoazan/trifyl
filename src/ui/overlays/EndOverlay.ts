@@ -10,8 +10,10 @@ export class EndOverlay {
     el.style.opacity = '0';
     el.style.pointerEvents = 'none';
     el.innerHTML = `
-      <div class="overlay-end__img"></div>
-      <button class="overlay-end__close" aria-label="Fermer">×</button>
+      <div class="overlay-end__card">
+        <div class="overlay-end__img"></div>
+        <button class="overlay-end__close" aria-label="Fermer"></button>
+      </div>
       <button class="overlay-end__quit" data-quit>Quitter</button>
     `;
     (el.querySelector('.overlay-end__img') as HTMLElement).style.backgroundImage = `url("${combinaisonUrl}")`;

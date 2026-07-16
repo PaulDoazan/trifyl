@@ -13,8 +13,10 @@ export class EduOverlay {
     el.style.opacity = '0';
     el.style.pointerEvents = 'none';
     el.innerHTML = `
-      <div class="overlay-edu__img"></div>
-      <button class="overlay-edu__close" aria-label="Fermer">×</button>
+      <div class="overlay-edu__card">
+        <div class="overlay-edu__img"></div>
+        <button class="overlay-edu__close" aria-label="Fermer"></button>
+      </div>
     `;
     this.img = el.querySelector('.overlay-edu__img') as HTMLElement;
     (el.querySelector('.overlay-edu__close') as HTMLButtonElement).onclick = () => this.hide();

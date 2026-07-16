@@ -51,7 +51,7 @@ export class GameScreen {
     private readonly pixi: PixiApp,
     private readonly assets: AssetProvider,
     level: 1 | 2 | 3,
-    private readonly pilesShownRef: { value: boolean },
+    private readonly shownSpecialsRef: { value: Set<SpecialCategory> },
     private readonly callbacks: GameScreenCallbacks,
   ) {
     this.prng = createPrng((Date.now() ^ (level * 2654435761)) >>> 0);
@@ -101,10 +101,9 @@ export class GameScreen {
 
   private maybeShowSpecial(specials: SpecialCategory[]): void {
     for (const cat of specials) {
-      if (cat === 'piles') {
-        if (this.pilesShownRef.value) continue;
-        this.pilesShownRef.value = true;
-      }
+      // Chaque message éducatif n'apparaît qu'une fois par partie (tous niveaux confondus).
+      if (this.shownSpecialsRef.value.has(cat)) continue;
+      this.shownSpecialsRef.value.add(cat);
       this.edu.show(this.assets.getPopupUrl(cat));
       return; // un message à la fois
     }

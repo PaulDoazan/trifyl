@@ -12,21 +12,24 @@
 .overlay-end__img { background: center / contain no-repeat; }
 
 .overlay--edu { position: absolute; left: 0; right: 0; bottom: 40px; display: flex; justify-content: center; }
+.overlay-edu__card { position: relative; width: 900px; height: 160px; }
 .overlay-edu__img { width: 900px; height: 160px; }
 
 .overlay--end {
   position: absolute; inset: 0; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
 }
+.overlay-end__card { position: relative; width: 820px; height: 300px; }
 .overlay-end__img { width: 820px; height: 300px; }
 
+/* Zone cliquable superposée au « × » dessiné dans l'image (le glyphe fait partie du PNG). */
 .overlay-edu__close,
 .overlay-end__close {
-  position: absolute; top: 8px; right: 16px;
-  width: 48px; height: 48px; border: none; border-radius: 50%;
-  font-size: 28px; line-height: 1; cursor: pointer;
-  background: rgba(0,0,0,0.15); color: #243018;
+  position: absolute; border: none; padding: 0; cursor: pointer;
+  background: transparent;
 }
+.overlay-edu__close { top: 0; right: 58px; width: 96px; height: 64px; }
+.overlay-end__close { top: 118px; right: 52px; width: 84px; height: 84px; }
 
 .overlay-end__quit {
   margin-top: 24px; padding: 16px 40px; font-size: 22px; border: none;
