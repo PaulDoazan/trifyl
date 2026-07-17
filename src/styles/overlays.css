@@ -41,10 +41,27 @@
   background: rgba(36, 48, 24, 0.6);
 }
 .levelcomplete__card {
-  background: var(--color-bin-yellow, #c4d600); color: #243018;
-  padding: 48px 64px; border-radius: 24px; text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  background: none;
+  padding: 0;
 }
-.levelcomplete__buttons { display: flex; gap: 24px; margin-top: 32px; }
-.levelcomplete__btn { padding: 16px 32px; font-size: 22px; border: none; border-radius: 12px; cursor: pointer; }
-.levelcomplete__btn--continue { background: #243018; color: #fff; }
-.levelcomplete__btn--quit { background: #fff; color: #243018; }
+.levelcomplete__bravo {
+  width: 870px;
+  height: 246px;
+  background: center / contain no-repeat;
+}
+.levelcomplete__buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+.levelcomplete__imgbtn {
+  background: center / contain no-repeat;
+  cursor: pointer;
+}
+.levelcomplete__imgbtn--continue { width: 414px; height: 84px; }
+.levelcomplete__imgbtn--quit { width: 413px; height: 84px; }
