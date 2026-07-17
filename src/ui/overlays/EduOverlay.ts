@@ -4,7 +4,7 @@ import { GAME_CONFIG } from '@/game/config-loader';
 
 export class EduOverlay {
   readonly root: HTMLElement;
-  private img: HTMLElement;
+  private img: HTMLImageElement;
   private timeoutId: number | null = null;
 
   constructor() {
@@ -14,11 +14,11 @@ export class EduOverlay {
     el.style.pointerEvents = 'none';
     el.innerHTML = `
       <div class="overlay-edu__card">
-        <div class="overlay-edu__img"></div>
+        <img class="overlay-edu__img" alt="" />
         <button class="overlay-edu__close" aria-label="Fermer"></button>
       </div>
     `;
-    this.img = el.querySelector('.overlay-edu__img') as HTMLElement;
+    this.img = el.querySelector('.overlay-edu__img') as HTMLImageElement;
     (el.querySelector('.overlay-edu__close') as HTMLButtonElement).onclick = () => this.hide();
     this.root = el;
   }
@@ -26,7 +26,7 @@ export class EduOverlay {
   /** popupUrl = image (piles/textile/verre). */
   show(popupUrl: string): void {
     if (this.timeoutId !== null) window.clearTimeout(this.timeoutId);
-    this.img.style.backgroundImage = `url("${popupUrl}")`;
+    this.img.src = popupUrl;
     this.root.style.pointerEvents = 'auto';
     gsap.to(this.root, { opacity: 1, ...ANIM.overlayIn });
     this.timeoutId = window.setTimeout(() => this.hide(), GAME_CONFIG.timings.eduOverlayMs);

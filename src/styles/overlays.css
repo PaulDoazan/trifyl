@@ -12,24 +12,26 @@
 .overlay-end__img { background: center / contain no-repeat; }
 
 .overlay--edu { position: absolute; left: 0; right: 0; bottom: 40px; display: flex; justify-content: center; }
-.overlay-edu__card { position: relative; width: 900px; height: 160px; }
-.overlay-edu__img { width: 900px; height: 160px; }
+.overlay-edu__card { position: relative; }
+.overlay-edu__img { display: block; width: 900px; height: auto; }
 
 .overlay--end {
   position: absolute; inset: 0; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
 }
-.overlay-end__card { position: relative; width: 820px; height: 300px; }
-.overlay-end__img { width: 820px; height: 300px; }
+.overlay-end__card { position: relative; }
+.overlay-end__img { display: block; width: 820px; height: auto; }
 
-/* Zone cliquable superposée au « × » dessiné dans l'image (le glyphe fait partie du PNG). */
+/* Zone cliquable superposée au « × » dessiné dans l'image (le glyphe fait partie du PNG).
+   Les images sont affichées à leur ratio naturel (hauteur auto) : la zone, ancrée au coin,
+   retombe donc au même endroit quelle que soit la hauteur du PNG. */
 .overlay-edu__close,
 .overlay-end__close {
   position: absolute; border: none; padding: 0; cursor: pointer;
   background: transparent;
 }
-.overlay-edu__close { top: 0; right: 58px; width: 96px; height: 64px; }
-.overlay-end__close { top: 118px; right: 52px; width: 84px; height: 84px; }
+.overlay-edu__close { top: 0; right: 2px; width: 82px; height: 80px; }
+.overlay-end__close { top: 120px; right: 0; width: 58px; height: 58px; }
 
 .overlay-end__quit {
   margin-top: 24px; padding: 16px 40px; font-size: 22px; border: none;

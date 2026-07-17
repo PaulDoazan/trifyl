@@ -11,12 +11,12 @@ export class EndOverlay {
     el.style.pointerEvents = 'none';
     el.innerHTML = `
       <div class="overlay-end__card">
-        <div class="overlay-end__img"></div>
+        <img class="overlay-end__img" alt="" />
         <button class="overlay-end__close" aria-label="Fermer"></button>
       </div>
       <button class="overlay-end__quit" data-quit>Quitter</button>
     `;
-    (el.querySelector('.overlay-end__img') as HTMLElement).style.backgroundImage = `url("${combinaisonUrl}")`;
+    (el.querySelector('.overlay-end__img') as HTMLImageElement).src = combinaisonUrl;
     (el.querySelector('.overlay-end__close') as HTMLButtonElement).onclick = () => this.hide();
     (el.querySelector('[data-quit]') as HTMLButtonElement).onclick = onQuit;
     this.root = el;
