@@ -80,13 +80,27 @@ export class HUD {
     m.append(homeBtn, quitBtn);
 
     // Étoiles cliquables (debug) : sauter directement à un niveau pour tester.
+    // Sécurité : il faut 5 clics d'affilée, chacun à moins de 300 ms du précédent,
+    // pour déclencher le changement de niveau (évite les déclenchements accidentels).
     if (GAME_CONFIG.debug.levelStarNav) {
+      const UNLOCK_CLICKS = 5;
+      const MAX_INTERVAL_MS = 300;
       for (const s of STAR_HITBOXES) {
         const hit = document.createElement('button');
         hit.className = 'menu__star-hit';
         hit.style.cssText = `position:absolute;left:${s.left}px;top:${s.top}px;width:64px;height:64px;padding:0;border:none;background:transparent;cursor:pointer;`;
-        hit.title = `Aller au niveau ${s.level}`;
-        hit.onclick = () => callbacks.onSelectLevel(s.level);
+        hit.title = `Aller au niveau ${s.level} (5 clics rapides)`;
+        let clicks = 0;
+        let lastTs = 0;
+        hit.onclick = () => {
+          const now = performance.now();
+          clicks = now - lastTs <= MAX_INTERVAL_MS ? clicks + 1 : 1;
+          lastTs = now;
+          if (clicks >= UNLOCK_CLICKS) {
+            clicks = 0;
+            callbacks.onSelectLevel(s.level);
+          }
+        };
         m.appendChild(hit);
       }
     }
