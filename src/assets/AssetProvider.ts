@@ -15,4 +15,7 @@ export interface AssetProvider {
   getPopupUrl(key: PopupKey): string;
   getBinVideUrl(level: 1 | 2 | 3, bin: BinCategory): string;
   getBinPleineUrl(bin: BinCategory): string;
+  getPaillettesUrls(): string[];
+  getBravoUrl(): string;
+  getBravoButtonUrl(kind: 'continuer' | 'quitter'): string;
 }

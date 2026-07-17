@@ -35,6 +35,12 @@ function makeObstacleTexture(): Texture {
 // URL de chaque PNG sous src/assets/files (résolu par Vite au build).
 const FILES = import.meta.glob('./files/**/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
 
+const PAILLETTES = import.meta.glob('./files/paillettes/*.png', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+}) as Record<string, string>;
+
 function url(relative: string): string {
   const key = `./files/${relative}.png`;
   const u = FILES[key];
@@ -76,5 +82,12 @@ export class FileAssetProvider implements AssetProvider {
   }
   getBinPleineUrl(bin: BinCategory): string {
     return url(`poubelles/poub_${BIN_FILE[bin]}_pleine`);
+  }
+  getPaillettesUrls(): string[] {
+    return Object.values(PAILLETTES);
+  }
+  getBravoUrl(): string { return url('bravo/bravo'); }
+  getBravoButtonUrl(kind: 'continuer' | 'quitter'): string {
+    return url(kind === 'continuer' ? 'bravo/bouton-continuer' : 'bravo/bouton-quitter-partie');
   }
 }
