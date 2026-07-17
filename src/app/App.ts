@@ -6,6 +6,7 @@ import { HomeScreen } from '@/ui/screens/HomeScreen';
 import { EndMediaScreen } from '@/ui/screens/EndMediaScreen';
 import { GameScreen } from '@/ui/screens/GameScreen';
 import { LevelCompleteOverlay } from '@/ui/overlays/LevelCompleteOverlay';
+import { Confetti } from '@/ui/overlays/Confetti';
 import { IdleTracker } from '@/input/IdleTracker';
 import { GAME_CONFIG, type SpecialCategory } from '@/game/config-loader';
 
@@ -19,6 +20,7 @@ export class App {
   // Messages éducatifs déjà affichés durant la partie (une seule apparition par catégorie, tous niveaux confondus).
   private shownSpecialsRef = { value: new Set<SpecialCategory>() };
   private levelComplete!: LevelCompleteOverlay;
+  private confetti!: Confetti;
 
   constructor(private readonly host: HTMLElement) {}
 
@@ -33,6 +35,10 @@ export class App {
 
     this.assets = new FileAssetProvider();
     await this.assets.init();
+
+    this.confetti = new Confetti(this.assets);
+    this.host.appendChild(this.confetti.canvas);
+    await this.confetti.init();
 
     this.screens = new ScreenManager(this.host);
 
@@ -51,7 +57,7 @@ export class App {
     this.screens.register('home', home.root);
     this.screens.register('endmedia', endmedia.root);
 
-    this.levelComplete = new LevelCompleteOverlay({
+    this.levelComplete = new LevelCompleteOverlay(this.assets, this.confetti, {
       onContinue: () => this.continueNextLevel(),
       onQuit: () => this.goMedia(),
     });
@@ -103,8 +109,8 @@ export class App {
   }
 
   private onLevelComplete(level: 1 | 2 | 3): void {
-    if (level >= 3) { this.goMedia(); return; }
-    this.levelComplete.show();
+    // Niveau 3 (victoire finale) : bandeau bravo + « Quitter » uniquement.
+    this.levelComplete.show({ showContinue: level < 3 });
   }
 
   private goHome(): void {
