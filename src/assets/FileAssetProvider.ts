@@ -41,6 +41,14 @@ const PAILLETTES = import.meta.glob('./files/paillettes/*.png', {
   import: 'default',
 }) as Record<string, string>;
 
+// Vidéo de fin de jeu déposée par le client dans src/assets/files/video/ (non versionnée).
+// Absente en dev ? le glob est simplement vide et l'écran de fin retombe sur un texte.
+const VIDEOS = import.meta.glob('./files/video/*.{mp4,webm,mov,m4v}', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+}) as Record<string, string>;
+
 function url(relative: string): string {
   const key = `./files/${relative}.png`;
   const u = FILES[key];
@@ -85,6 +93,11 @@ export class FileAssetProvider implements AssetProvider {
   }
   getPaillettesUrls(): string[] {
     return Object.values(PAILLETTES);
+  }
+  /** URL de la vidéo de fin de jeu, ou null si aucun fichier n'a été déposé dans files/video/. */
+  getEndVideoUrl(): string | null {
+    const first = Object.values(VIDEOS)[0];
+    return first ?? null;
   }
   getBravoUrl(): string { return url('bravo/bravo'); }
   getBravoButtonUrl(kind: 'continuer' | 'quitter'): string {

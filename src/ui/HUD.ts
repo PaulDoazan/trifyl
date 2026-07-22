@@ -17,7 +17,14 @@ const STAR_HITBOXES: ReadonlyArray<{ level: 1 | 2 | 3; left: number; top: number
   { level: 3, left: 270, top: 40 },
 ];
 
-type Box = { left: number; top: number; width: number; height: number };
+export type Box = { left: number; top: number; width: number; height: number };
+
+/**
+ * Position/taille du bouton Accueil dans la sidebar (px absolus depuis son coin haut-gauche,
+ * et la sidebar démarre à left:0 → mêmes coords à l'écran).
+ * Exporté pour que l'écran de fin réutilise EXACTEMENT le même emplacement.
+ */
+export const SIDEBAR_HOME_BOX: Box = { left: 41, top: 950, width: 105, height: 90 };
 
 /**
  * Disposition de la sidebar, en PIXELS ABSOLUS depuis son coin haut-gauche.
@@ -33,7 +40,7 @@ const LAYOUT: { bins: Record<BinCategory, Box>; home: Box; quit: Box } = {
   },
   // Boutons du bas. home agrandi ; quitter à la même hauteur de pastille blanche (90px).
   // Largeurs calées sur le ratio de chaque image (home 95×81, quitter 238×66) pour éviter toute déformation.
-  home: { left: 41, top: 950, width: 105, height: 90 },
+  home: SIDEBAR_HOME_BOX,
   quit: { left: 185, top: 965, width: 250, height: 75 },
 };
 

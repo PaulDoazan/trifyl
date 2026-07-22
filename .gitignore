@@ -6,3 +6,8 @@ dist/
 .vite/
 coverage/
 *.tsbuildinfo
+
+# Vidéo de fin de jeu — fournie par le client, à déposer dans src/assets/files/video/.
+# Le dossier reste versionné (via .gitkeep) mais son contenu vidéo ne l'est pas.
+src/assets/files/video/*
+!src/assets/files/video/.gitkeep

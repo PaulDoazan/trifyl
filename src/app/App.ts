@@ -21,6 +21,7 @@ export class App {
   private shownSpecialsRef = { value: new Set<SpecialCategory>() };
   private levelComplete!: LevelCompleteOverlay;
   private confetti!: Confetti;
+  private endmedia!: EndMediaScreen;
 
   constructor(private readonly host: HTMLElement) {}
 
@@ -48,14 +49,13 @@ export class App {
     const home = new HomeScreen(this.assets.getScreenImageUrl('home'), this.assets.getButtonUrl('commencer'), {
       onStart: () => this.startNewGame(),
     });
-    const endmedia = new EndMediaScreen({
-      onReplay: () => this.goHome(),
+    this.endmedia = new EndMediaScreen(this.assets.getEndVideoUrl(), this.assets.getButtonUrl('home'), {
       onHome: () => this.goHome(),
     });
 
     this.screens.register('veille', veille.root);
     this.screens.register('home', home.root);
-    this.screens.register('endmedia', endmedia.root);
+    this.screens.register('endmedia', this.endmedia.root);
 
     this.levelComplete = new LevelCompleteOverlay(this.assets, this.confetti, {
       onContinue: () => this.continueNextLevel(),
@@ -115,6 +115,7 @@ export class App {
 
   private goHome(): void {
     this.levelComplete.hide();
+    this.endmedia.stop();
     this.disposeCurrentGame();
     this.screens.show('home');
     this.idle.reset();
@@ -124,6 +125,7 @@ export class App {
     this.levelComplete.hide();
     this.disposeCurrentGame();
     this.screens.show('endmedia');
+    this.endmedia.play();
     this.idle.reset();
   }
 

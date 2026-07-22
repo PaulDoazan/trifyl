@@ -16,6 +16,7 @@ export interface AssetProvider {
   getBinVideUrl(level: 1 | 2 | 3, bin: BinCategory): string;
   getBinPleineUrl(bin: BinCategory): string;
   getPaillettesUrls(): string[];
+  getEndVideoUrl(): string | null;
   getBravoUrl(): string;
   getBravoButtonUrl(kind: 'continuer' | 'quitter'): string;
 }
