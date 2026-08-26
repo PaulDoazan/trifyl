@@ -1,4 +1,9 @@
 import { SIDEBAR_HOME_BOX } from '@/ui/HUD';
+import {
+  isNearEnd,
+  computeWatchdogDelayMs,
+  NO_VIDEO_FALLBACK_MS,
+} from './endmedia-timing';
 
 export interface EndMediaCallbacks {
   onHome: () => void;
@@ -8,8 +13,12 @@ export class EndMediaScreen {
   readonly root: HTMLElement;
   private readonly video: HTMLVideoElement | null = null;
   private readonly loader: HTMLElement | null = null;
+  /** Filet de sécurité armé : fin de vidéo manquée, ou repli sans vidéo. Un seul à la fois. */
+  private timerId: number | null = null;
+  /** Empêche `onHome` d'être appelé deux fois (ended + garde de fin + filet peuvent se recouvrir). */
+  private finished = false;
 
-  constructor(videoUrl: string | null, homeIconUrl: string, callbacks: EndMediaCallbacks) {
+  constructor(videoUrl: string | null, homeIconUrl: string, private readonly callbacks: EndMediaCallbacks) {
     const el = document.createElement('section');
     el.className = 'screen endmedia';
 
@@ -31,9 +40,23 @@ export class EndMediaScreen {
       const showLoader = () => loader.classList.remove('endmedia__loader--hidden');
       const hideLoader = () => loader.classList.add('endmedia__loader--hidden');
       video.addEventListener('canplay', hideLoader);
-      video.addEventListener('playing', hideLoader);
-      video.addEventListener('waiting', showLoader); // rebuffering en cours de lecture
-      video.addEventListener('error', hideLoader);
+
+      // Retour à l'accueil à la fin de la vidéo — sinon la borne reste figée sur la dernière frame.
+      video.addEventListener('ended', () => this.finish());
+
+      // Garde : certains encodages ne déclenchent pas `ended`. La position de lecture, elle, ne ment pas.
+      video.addEventListener('timeupdate', () => {
+        if (isNearEnd(video.currentTime, video.duration)) this.finish();
+        else if (this.timerId === null) this.armWatchdog(); // métadonnées arrivées tardivement
+      });
+
+      // Le filet est calé sur le temps restant : on l'arme à la lecture, on le désarme pendant
+      // un rebuffering (fréquent sur le stockage BrightSign) pour ne jamais couper la vidéo.
+      video.addEventListener('playing', () => { hideLoader(); this.armWatchdog(); });
+      video.addEventListener('waiting', () => { showLoader(); this.clearTimer(); });
+
+      // Vidéo illisible : même impasse qu'une vidéo absente → on temporise puis on sort.
+      video.addEventListener('error', () => { hideLoader(); this.armTimer(NO_VIDEO_FALLBACK_MS); });
 
       media.append(video, loader);
       this.video = video;
@@ -59,19 +82,52 @@ export class EndMediaScreen {
 
   /** Démarre la vidéo depuis le début (appelé quand l'écran devient visible). */
   play(): void {
-    if (!this.video) return;
+    this.finished = false;
+    this.clearTimer();
+    if (!this.video) {
+      // Repli sans vidéo : on ne laisse pas le texte à l'écran indéfiniment.
+      this.armTimer(NO_VIDEO_FALLBACK_MS);
+      return;
+    }
     this.video.currentTime = 0;
     // Pas encore assez bufferisée pour lire ? on montre le loader en attendant.
     if (this.loader && this.video.readyState < HTMLMediaElement.HAVE_FUTURE_DATA) {
       this.loader.classList.remove('endmedia__loader--hidden');
     }
-    // Appelé dans la foulée d'un tap → autoplay avec son autorisé ; on ignore un rejet éventuel.
-    void this.video.play().catch(() => {});
+    // Appelé dans la foulée d'un tap → autoplay avec son autorisé.
+    // Un rejet (autoplay bloqué) laisserait l'écran mort : on temporise pour sortir quand même.
+    void this.video.play().catch(() => this.armTimer(NO_VIDEO_FALLBACK_MS));
   }
 
-  /** Met la vidéo en pause (appelé quand on quitte l'écran). */
+  /** Met la vidéo en pause et désarme toute temporisation (appelé quand on quitte l'écran). */
   stop(): void {
+    this.clearTimer();
     if (!this.video) return;
     this.video.pause();
+  }
+
+  /** Retour à l'accueil, une seule fois. */
+  private finish(): void {
+    if (this.finished) return;
+    this.finished = true;
+    this.clearTimer();
+    this.callbacks.onHome();
+  }
+
+  /** Arme le filet sur le temps de vidéo restant (rien si la durée est encore inconnue). */
+  private armWatchdog(): void {
+    if (!this.video) return;
+    const delay = computeWatchdogDelayMs(this.video.currentTime, this.video.duration);
+    if (delay !== null) this.armTimer(delay);
+  }
+
+  private armTimer(delayMs: number): void {
+    if (this.finished) return; // retour déjà parti : ne pas laisser traîner un timer sur l'accueil
+    this.clearTimer();
+    this.timerId = window.setTimeout(() => { this.timerId = null; this.finish(); }, delayMs);
+  }
+
+  private clearTimer(): void {
+    if (this.timerId !== null) { window.clearTimeout(this.timerId); this.timerId = null; }
   }
 }
